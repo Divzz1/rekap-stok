@@ -1,16 +1,9 @@
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 
-/* ============================================================
-   ⚠️ GANTI DENGAN KREDENSIAL SUPABASE ANDA
-   ============================================================ */
 const SUPABASE_URL = 'https://vggxtpyduiiaazoloylx.supabase.co/';
 const SUPABASE_ANON_KEY = 'sb_publishable_kQifdwQIic-ycFJBLPa8Og_TvOSw13Z';
-
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-/* ============================================================
-   STATE & UTILS
-   ============================================================ */
 const state = {
   user: null, profile: null, categories: [], products: [], transactions: [],
   chartInstance: null, recoveryMode: false
@@ -29,7 +22,7 @@ function translateError(msg) {
   if (m.includes('user already registered')) return 'Email sudah terdaftar.';
   if (m.includes('email not confirmed')) return 'Email belum diverifikasi.';
   if (m.includes('rate limit')) return 'Terlalu banyak percobaan.';
-  if (m.includes('stok tidak mencukupi')) return 'Gagal: Stok tidak mencukupi untuk transaksi keluar ini.';
+  if (m.includes('stok tidak mencukupi')) return 'Gagal: Stok tidak mencukupi untuk transaksi ini.';
   return msg;
 }
 
@@ -46,9 +39,6 @@ function showApp() {
   document.getElementById('appScreen').classList.remove('hidden');
 }
 
-/* ============================================================
-   AUTHENTICATION
-   ============================================================ */
 async function loadProfile() {
   if (!state.user) return;
   const { data } = await supabase.from('profiles').select('nama').eq('id', state.user.id).maybeSingle();
@@ -123,9 +113,6 @@ supabase.auth.onAuthStateChange((event, session) => {
   } else if (!session && !state.recoveryMode) { showAuthView('loginView'); }
 });
 
-/* ============================================================
-   DATA FETCHING & RENDERING
-   ============================================================ */
 async function loadData() {
   document.getElementById('loadingState').classList.remove('hidden');
   const [catRes, prodRes, txRes] = await Promise.all([
@@ -228,9 +215,6 @@ function renderTable() {
   }).join('');
 }
 
-/* ============================================================
-   TRANSACTIONS (VALIDASI STOK KELUAR)
-   ============================================================ */
 document.getElementById('transactionForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const btn = document.getElementById('submitBtn');
@@ -242,10 +226,11 @@ document.getElementById('transactionForm').addEventListener('submit', async (e) 
   if (tipe === 'masuk' && jumlah < 0) return alert('Jumlah masuk tidak boleh minus.');
   if (tipe === 'keluar' && jumlah < 0) return alert('Jumlah keluar tidak boleh minus.');
 
-  // VALIDASI FRONTEND: Cegah stok keluar melebihi stok tersedia
-  if (tipe === 'keluar') {
+  // VALIDASI FRONTEND: Cegah stok minus baik untuk keluar maupun penyesuaian negatif
+  if (tipe === 'keluar' || (tipe === 'penyesuaian' && jumlah < 0)) {
     const currentStock = getProductStock(productId);
-    if (jumlah > currentStock) {
+    const jumlahKeluar = Math.abs(jumlah);
+    if (jumlahKeluar > currentStock) {
       return alert(`Gagal: Stok tidak mencukupi! Sisa stok saat ini adalah ${currentStock}.`);
     }
   }
@@ -276,9 +261,6 @@ window.deleteTransaction = async (id) => {
   await loadData();
 };
 
-/* ============================================================
-   PRODUCTS & CATEGORIES (INSERT DENGAN USER_ID)
-   ============================================================ */
 window.openProductModal = () => { renderProductTable(); document.getElementById('productModal').classList.remove('hidden'); };
 window.closeProductModal = () => document.getElementById('productModal').classList.add('hidden');
 window.showAddProductForm = () => { 
@@ -381,9 +363,6 @@ window.openStockCard = (productId) => {
 };
 window.closeStockCardModal = () => document.getElementById('stockCardModal').classList.add('hidden');
 
-/* ============================================================
-   IMPOR CSV
-   ============================================================ */
 let parsedImportData = [];
 window.openImportModal = () => { document.getElementById('importPreview').classList.add('hidden'); document.getElementById('csvFileInput').value = ''; parsedImportData = []; document.getElementById('importModal').classList.remove('hidden'); };
 window.closeImportModal = () => document.getElementById('importModal').classList.add('hidden');
@@ -460,9 +439,6 @@ window.processImport = async () => {
   await loadData();
 };
 
-/* ============================================================
-   KATEGORI & LAIN-LAIN
-   ============================================================ */
 window.openCategoryModal = () => { renderCategoryList(); document.getElementById('categoryModal').classList.remove('hidden'); };
 window.closeCategoryModal = () => document.getElementById('categoryModal').classList.add('hidden');
 function renderCategoryList() {
