@@ -1,53 +1,61 @@
-# Rekap Stok Barang Tim
+# STOKAPP - Sistem Rekap Stok Barang
 
-Aplikasi rekap stok barang dengan multi-user, kategori, dan grafik.
-Stack: HTML + CSS + JavaScript (frontend) + Supabase (database & auth).
+Aplikasi web untuk mengelola inventaris barang, mencatat transaksi masuk/keluar, serta memantau laporan stok secara real-time.
+Dibuat menggunakan HTML, CSS, Vanilla JavaScript, dan Supabase (sebagai database dan sistem autentikasi).
 
-## Struktur
+## Fitur Utama
 
-- `index.html` — halaman utama
-- `css/style.css` — styling
-- `js/config.js` — kredensial Supabase (EDIT DI SINI)
-- `js/state.js` — state global & event bus
-- `js/utils.js` — helper
-- `js/auth.js` — login/signup/forgot/reset
-- `js/category.js` — CRUD kategori
-- `js/stock.js` — CRUD stok
-- `js/chart.js` — grafik
-- `js/app.js` — orkestrator
+1. Autentikasi Multi-User: Login, daftar akun, dan reset password via email.
+2. Manajemen Produk & Kategori: Mengatur master barang, harga modal, dan batas minimum stok.
+3. Peringatan Stok Menipis: Banner otomatis muncul di dashboard jika ada produk yang jumlahnya menyentuh batas minimum.
+4. Pencatatan Transaksi: Mencatat barang masuk, barang keluar, dan penyesuaian (stok opname).
+5. Kartu Stok: Riwayat perubahan stok berurutan (kronologis) lengkap dengan saldo akhir, user penginput, dan keterangan alasan.
+6. Impor & Ekspor CSV: Memasukkan data produk secara massal dari file Excel/CSV (dilengkapi validasi dan preview) dan mengekspor riwayat transaksi.
+7. Laporan Periode: Filter laporan berdasarkan rentang tanggal dan kategori, lengkap dengan kalkulasi total nilai uang berdasarkan harga modal.
+8. Desain Modern: Antarmuka responsif bergaya SaaS Dashboard (dominan hitam, putih, dan abu-abu).
 
-## Setup
+## Struktur Direktori
 
-1. Buka [supabase.com](https://supabase.com) → New Project (pilih region Singapore).
-2. Settings → API → copy **Project URL** dan **anon public key**.
-3. Edit `js/config.js`, ganti `SUPABASE_URL` dan `SUPABASE_ANON_KEY`.
-4. Buka SQL Editor di Supabase, jalankan skrip SQL di bawah.
-5. Authentication → Providers → Email:
-   - Enable Email provider ✅
-   - **Confirm email: OFF** (agar bisa langsung login)
-6. Authentication → URL Configuration:
-   - Site URL: `http://localhost:3000` (atau domain produksi)
-   - Redirect URLs: tambahkan `http://localhost:3000/*` dan domain produksi
+rekap-stok/
+├── index.html
+├── database.sql      (Skrip untuk Supabase)
+├── README.md
+├── css/
+│   └── style.css
+└── js/
+    └── app.js        (Semua logika aplikasi & koneksi Supabase)
 
-## Skrip SQL (jalankan di Supabase SQL Editor)
+## Cara Setup (Development)
 
-Lihat file `supabase.sql` di bawah — copy-paste seluruh isinya lalu Run.
+### 1. Buat Proyek Supabase
+1. Daftar di supabase.com dan buat proyek baru (pilih region Singapore agar cepat).
+2. Buka menu SQL Editor di dashboard Supabase.
+3. Buka file database.sql di folder ini, copy seluruh isinya, lalu paste dan Run di SQL Editor. Ini akan membuat tabel profiles, categories, products, dan transactions.
 
-## Jalankan Lokal
+### 2. Konfigurasi Autentikasi
+1. Di Supabase, buka menu Authentication -> Providers -> Email.
+2. Pastikan Enable Email Provider menyala. (Jika ingin melewati verifikasi email, matikan opsi Confirm email).
+3. Buka menu URL Configuration, atur Site URL ke http://localhost:3000 (atau port Live Server kamu), dan tambahkan URL tersebut ke Redirect URLs (contoh: http://localhost:3000/**).
 
-ES modules butuh HTTP server (tidak bisa buka file:// langsung).
+### 3. Hubungkan Aplikasi ke Database
+1. Di Supabase, buka Project Settings -> API.
+2. Copy Project URL dan Publishable/Anon Key.
+3. Buka file js/app.js, cari baris paling atas, dan ganti nilainya:
+   const SUPABASE_URL = 'URL_SUPABASE_KAMU';
+   const SUPABASE_ANON_KEY = 'ANON_KEY_SUPABASE_KAMU';
 
-- VS Code: pakai ekstensi **Live Server** → klik kanan `index.html` → Open with Live Server.
-- Atau: `python -m http.server 3000` di folder proyek, buka `http://localhost:3000`.
+### 4. Jalankan Aplikasi
+Karena aplikasi menggunakan JavaScript Modules, kamu tidak bisa hanya men-double-click index.html.
+- VS Code: Install ekstensi Live Server, lalu klik kanan index.html -> Open with Live Server.
+- CLI: Jalankan python -m http.server 3000 di terminal, lalu buka http://localhost:3000.
 
-## Deploy (gratis)
+## Cara Deploy (Gratis)
 
-- **Vercel**: upload ke GitHub → import di vercel.com → Deploy.
-- **Netlify**: drag folder ke [netlify.com/drop](https://app.netlify.com/drop).
-- Setelah deploy, tambahkan URL-nya ke Supabase → Authentication → URL Configuration.
+1. Upload folder proyek ini ke repository GitHub.
+2. Buka Vercel atau Netlify, login dengan GitHub, lalu import repository tersebut.
+3. Klik Deploy. Kamu akan mendapatkan URL website (contoh: https://rekap-stok.vercel.app).
+4. Jangan lupa, kembali ke Supabase -> Authentication -> URL Configuration, lalu ubah Site URL dan tambahkan Redirect URLs dengan URL Vercel yang baru kamu dapatkan.
 
-## Catatan
-
-- Supabase free tier pause setelah 7 hari idle. Buka dashboard 1x untuk bangunkan.
-- Email reset password gratis dibatasi 4/jam.
-- Data dibagi bersama (semua user login bisa lihat semua data — cocok untuk tim internal).
+## Format Impor CSV
+Jika ingin menggunakan fitur Impor, pastikan file .csv (bisa dibuat dari Excel) memiliki baris pertama (header) dengan format berikut:
+Nama Produk,Kategori,Stok Awal,Min Stok,Harga Modal
