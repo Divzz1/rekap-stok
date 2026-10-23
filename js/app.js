@@ -3,8 +3,8 @@ import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 /* ============================================================
    ⚠️ GANTI DENGAN KREDENSIAL SUPABASE ANDA
    ============================================================ */
-const SUPABASE_URL = 'GANTI_DENGAN_URL_SUPABASE';
-const SUPABASE_ANON_KEY = 'GANTI_DENGAN_ANON_KEY_SUPABASE';
+const SUPABASE_URL = 'https://vggxtpyduiiaazoloylx.supabase.co/';
+const SUPABASE_ANON_KEY = 'sb_publishable_kQifdwQIic-ycFJBLPa8Og_TvOSw13Z';
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
