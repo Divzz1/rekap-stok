@@ -23,7 +23,7 @@ rekap-stok/
 ├── css/
 │   └── style.css
 └── js/
-    └── app.js        (Semua logika aplikasi & koneksi Supabase)
+└── app.js        (Semua logika aplikasi & koneksi Supabase)
 
 ## Cara Setup (Development)
 
