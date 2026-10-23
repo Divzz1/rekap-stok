@@ -316,3 +316,9 @@ tbody tr:hover { background: #f9fafb; }
   .table-actions { width: 100%; }
   .search-input { flex: 1; }
 }
+
+/* ===== TAMBAHAN FITUR BARU ===== */
+.text-center { text-align: center; }
+.alert-banner { font-size: 14px; }
+.table-actions { align-items: center; }
+input[type="file"] { font-family: inherit; font-size: 14px; }
