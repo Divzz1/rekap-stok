@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rekap Stok Barang</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<!-- ===== AUTH SCREENS ===== -->
+<div id="authScreen">
+  <!-- LOGIN -->
+  <div id="loginView" class="auth-view">
+    <div class="auth-card">
+      <div class="logo">STOK<span>APP</span></div>
+      <h1>Masuk ke Sistem</h1>
+      <p class="subtitle">Kelola inventaris barang kantor Anda.</p>
+      <div id="loginError" class="alert alert-error hidden"></div>
+      <form id="loginForm">
+        <div class="field">
+          <label>Email</label>
+          <input type="email" id="loginEmail" required autocomplete="email" placeholder="nama@kantor.com">
+        </div>
+        <div class="field">
+          <label>Password</label>
+          <input type="password" id="loginPass" required autocomplete="current-password" placeholder="••••••••">
+        </div>
+        <button type="submit" class="btn btn-primary" id="loginBtn">Masuk</button>
+      </form>
+      <div class="auth-links">
+        <a href="#" onclick="showAuthView('forgotView'); return false;">Lupa password?</a>
+        <a href="#" onclick="showAuthView('signupView'); return false;">Buat akun baru</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- SIGNUP -->
+  <div id="signupView" class="auth-view hidden">
+    <div class="auth-card">
+      <div class="logo">STOK<span>APP</span></div>
+      <h1>Buat Akun</h1>
+      <p class="subtitle">Daftar untuk mulai mengelola stok.</p>
+      <div id="signupError" class="alert alert-error hidden"></div>
+      <div id="signupSuccess" class="alert alert-success hidden"></div>
+      <form id="signupForm">
+        <div class="field"><label>Nama Lengkap</label><input type="text" id="signupNama" required autocomplete="name" placeholder="Nama Anda"></div>
+        <div class="field"><label>Email</label><input type="email" id="signupEmail" required autocomplete="email" placeholder="nama@kantor.com"></div>
+        <div class="field"><label>Password</label><input type="password" id="signupPass" required minlength="6" autocomplete="new-password" placeholder="Minimal 6 karakter"></div>
+        <button type="submit" class="btn btn-primary" id="signupBtn">Daftar</button>
+      </form>
+      <div class="auth-links"><a href="#" onclick="showAuthView('loginView'); return false;">Kembali ke Login</a></div>
+    </div>
+  </div>
+
+  <!-- FORGOT -->
+  <div id="forgotView" class="auth-view hidden">
+    <div class="auth-card">
+      <div class="logo">STOK<span>APP</span></div>
+      <h1>Lupa Password</h1>
+      <p class="subtitle">Masukkan email untuk menerima link reset.</p>
+      <div id="forgotError" class="alert alert-error hidden"></div>
+      <div id="forgotSuccess" class="alert alert-success hidden"></div>
+      <form id="forgotForm">
+        <div class="field"><label>Email Terdaftar</label><input type="email" id="forgotEmail" required autocomplete="email" placeholder="nama@kantor.com"></div>
+        <button type="submit" class="btn btn-primary" id="forgotBtn">Kirim Link Reset</button>
+      </form>
+      <div class="auth-links"><a href="#" onclick="showAuthView('loginView'); return false;">Kembali ke Login</a></div>
+    </div>
+  </div>
+
+  <!-- RESET -->
+  <div id="resetView" class="auth-view hidden">
+    <div class="auth-card">
+      <div class="logo">STOK<span>APP</span></div>
+      <h1>Reset Password</h1>
+      <p class="subtitle">Masukkan password baru Anda.</p>
+      <div id="resetError" class="alert alert-error hidden"></div>
+      <div id="resetSuccess" class="alert alert-success hidden"></div>
+      <form id="resetForm">
+        <div class="field"><label>Password Baru</label><input type="password" id="resetPass" required minlength="6" autocomplete="new-password" placeholder="Minimal 6 karakter"></div>
+        <div class="field"><label>Konfirmasi Password</label><input type="password" id="resetPassConfirm" required minlength="6" autocomplete="new-password" placeholder="Ulangi password"></div>
+        <button type="submit" class="btn btn-primary" id="resetBtn">Simpan Password</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MAIN APP ===== -->
+<div id="appScreen" class="layout hidden">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">STOK<span>APP</span></div>
+    <nav class="sidebar-nav">
+      <a href="#" class="nav-item active">Dashboard</a>
+      <a href="#" class="nav-item" onclick="openCategoryModal(); return false;">Kelola Kategori</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-block">
+        <div class="user-name" id="userName">-</div>
+        <div class="user-email" id="userEmail">-</div>
+      </div>
+      <button class="btn btn-outline" onclick="logout()">Logout</button>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main-content">
+    <header class="topbar">
+      <div style="display:flex; align-items:center; gap:16px;">
+        <!-- Tombol Toggle Sidebar -->
+        <button id="menuToggle" class="btn btn-outline" style="padding: 8px; border-radius: 6px; color: var(--text-main);">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+        </button>
+        <h2>Ikhtisar Inventaris</h2>
+      </div>
+    </header>
+
+    <!-- STATS -->
+    <div class="stats">
+      <div class="stat-card">
+        <div class="stat-label">Total Item</div>
+        <div class="stat-value" id="statBarang">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Barang Masuk</div>
+        <div class="stat-value" id="statMasuk">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Barang Keluar</div>
+        <div class="stat-value" id="statKeluar">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Stok Tersedia</div>
+        <div class="stat-value" id="statStok">0</div>
+      </div>
+    </div>
+
+    <div class="dashboard-grid">
+      <!-- CHART -->
+      <div class="card chart-card">
+        <div class="card-header">
+          <h3>Stok per Kategori</h3>
+        </div>
+        <div class="chart-wrap"><canvas id="stockChart"></canvas></div>
+      </div>
+
+      <!-- FORM -->
+      <div class="card form-card">
+        <div class="card-header">
+          <h3 id="formTitle">Tambah Data</h3>
+        </div>
+        <form id="stockForm">
+          <div class="form-grid">
+            <div class="field">
+              <label>Nama Barang</label>
+              <input type="text" id="inputNama" required placeholder="Contoh: Kertas A4">
+            </div>
+            <div class="field">
+              <label>Kategori</label>
+              <div class="category-row">
+                <select id="inputKategori" required></select>
+                <button type="button" class="btn btn-outline" onclick="openCategoryModal()">Atur</button>
+              </div>
+            </div>
+            
+            <div class="form-row-2">
+              <fieldset class="section-box">
+                <legend>Masuk</legend>
+                <div class="field"><label>Jumlah</label><input type="number" id="inputJmlMasuk" min="0" value="0"></div>
+                <div class="field"><label>Tanggal</label><input type="date" id="inputTglMasuk"></div>
+              </fieldset>
+              <fieldset class="section-box">
+                <legend>Keluar</legend>
+                <div class="field"><label>Jumlah</label><input type="number" id="inputJmlKeluar" min="0" value="0"></div>
+                <div class="field"><label>Tanggal</label><input type="date" id="inputTglKeluar"></div>
+              </fieldset>
+            </div>
+
+            <div class="field">
+              <label>Keterangan (Opsional)</label>
+              <input type="text" id="inputKet" placeholder="Catatan tambahan">
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary" id="submitBtn">Simpan Data</button>
+            <button type="button" class="btn btn-outline hidden" id="cancelBtn">Batal</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- TABLE -->
+    <div class="card table-card">
+      <div class="card-header table-header">
+        <h3>Riwayat Transaksi</h3>
+        <div class="table-actions">
+          <input type="text" id="searchInput" placeholder="Cari barang..." class="search-input">
+          <select id="filterKategori" class="filter-select">
+            <option value="">Semua Kategori</option>
+          </select>
+          <button class="btn btn-outline" onclick="exportCSV()">Export CSV</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Nama Barang</th>
+              <th>Kategori</th>
+              <th>Masuk</th>
+              <th>Tgl Masuk</th>
+              <th>Keluar</th>
+              <th>Tgl Keluar</th>
+              <th>Total</th>
+              <th>Keterangan</th>
+              <th class="text-right">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+      <div id="emptyState" class="empty-state hidden">Belum ada data transaksi.</div>
+      <div id="loadingState" class="loading hidden">Memuat data...</div>
+    </div>
+  </main>
+</div>
+
+<!-- MODAL KATEGORI -->
+<div id="categoryModal" class="modal-backdrop hidden">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Kelola Kategori</h3>
+      <button class="btn-close" onclick="closeCategoryModal()">×</button>
+    </div>
+    <div class="field">
+      <label>Tambah Kategori Baru</label>
+      <div class="category-row">
+        <input type="text" id="newCategoryInput" placeholder="Nama kategori">
+        <button class="btn btn-primary" onclick="addCategory()">Tambah</button>
+      </div>
+    </div>
+    <div class="list" id="categoryList"></div>
+  </div>
+</div>
+
+<script>
+  // Script buka-tutup sidebar
+  document.getElementById('menuToggle').addEventListener('click', () => {
+    document.querySelector('.layout').classList.toggle('sidebar-closed');
+    // Delay sedikit agar Chart.js bisa menyesuaikan ukuran layar baru
+    setTimeout(() => { window.dispatchEvent(new Event('resize')); }, 350);
+  });
+</script>
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
