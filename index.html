@@ -83,14 +83,17 @@
 
 <!-- ===== MAIN APP ===== -->
 <div id="appScreen" class="layout hidden">
+  <!-- Overlay untuk Mobile -->
+  <div id="sidebarOverlay" class="sidebar-overlay"></div>
+
   <!-- SIDEBAR -->
-  <aside class="sidebar">
+  <aside class="sidebar" id="sidebar">
     <div class="sidebar-brand">STOK<span>APP</span></div>
     <nav class="sidebar-nav">
-      <a href="#" class="nav-item active" onclick="switchPage('dashboard', this); return false;">Dashboard</a>
-      <a href="#" class="nav-item" onclick="switchPage('report', this); return false;">Laporan</a>
-      <a href="#" class="nav-item" onclick="openCategoryModal(); return false;">Kelola Kategori</a>
-      <a href="#" class="nav-item" onclick="openProductModal(); return false;">Kelola Produk</a>
+      <a href="#" class="nav-item active" onclick="switchPage('dashboard', this); closeSidebarMobile(); return false;">Dashboard</a>
+      <a href="#" class="nav-item" onclick="switchPage('report', this); closeSidebarMobile(); return false;">Laporan</a>
+      <a href="#" class="nav-item" onclick="openCategoryModal(); closeSidebarMobile(); return false;">Kelola Kategori</a>
+      <a href="#" class="nav-item" onclick="openProductModal(); closeSidebarMobile(); return false;">Kelola Produk</a>
     </nav>
     <div class="sidebar-footer">
       <div class="user-block">
@@ -104,18 +107,19 @@
   <!-- MAIN CONTENT -->
   <main class="main-content">
     <header class="topbar">
-      <div style="display:flex; align-items:center; gap:16px;">
-        <button id="menuToggle" class="btn btn-outline" style="padding: 8px; border-radius: 6px; color: var(--text-main);">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+      <div style="display:flex; align-items:center; gap:12px;">
+        <!-- Tombol Menu Mobile -->
+        <button id="menuToggle" class="btn-menu">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
         </button>
-        <h2 id="pageTitle">Ikhtisar Inventaris</h2>
+        <h2 id="pageTitle">Inventory Overview</h2>
       </div>
     </header>
 
     <!-- PAGE: DASHBOARD -->
     <div id="page-dashboard">
       <!-- Low Stock Alert -->
-      <div id="lowStockBanner" class="alert-banner alert-error hidden" style="margin-bottom: 24px; border-radius: 8px; border: 1px solid #fca5a5; background: #fef2f2; color: #991b1b; padding: 16px; display: flex; align-items: center; gap: 8px; font-size: 14px;">
+      <div id="lowStockBanner" class="alert-banner hidden" style="margin-bottom: 20px; border-radius: 8px; border: 1px solid #fca5a5; background: #fef2f2; color: #991b1b; padding: 16px; font-size: 14px;">
         <strong>Peringatan Stok:</strong> <span id="lowStockText"></span>
       </div>
 
@@ -181,7 +185,7 @@
 
       <div class="card table-card">
         <div class="card-header table-header">
-          <h3>Riwayat Transaksi Terakhir</h3>
+          <h3>Riwayat Transaksi</h3>
           <div class="table-actions">
             <button class="btn btn-outline" onclick="openImportModal()">Impor CSV</button>
             <button class="btn btn-outline" onclick="exportCSV()">Export CSV</button>
@@ -213,16 +217,16 @@
     <div id="page-report" class="hidden">
       <div class="card" style="margin-bottom: 24px;">
         <div class="card-header"><h3>Filter Laporan</h3></div>
-        <div style="padding: 24px; display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-end;">
-          <div class="field" style="margin:0;">
+        <div class="report-filters">
+          <div class="field">
             <label>Dari Tanggal</label>
             <input type="date" id="reportStart">
           </div>
-          <div class="field" style="margin:0;">
+          <div class="field">
             <label>Sampai Tanggal</label>
             <input type="date" id="reportEnd">
           </div>
-          <div class="field" style="margin:0;">
+          <div class="field">
             <label>Kategori</label>
             <select id="reportKategori"><option value="">Semua Kategori</option></select>
           </div>
@@ -232,19 +236,19 @@
 
       <div class="stats">
         <div class="stat-card">
-          <div class="stat-label">Total Masuk (Periode)</div>
+          <div class="stat-label">Total Masuk</div>
           <div class="stat-value" id="repMasuk">0</div>
         </div>
         <div class="stat-card">
-          <div class="stat-label">Total Keluar (Periode)</div>
+          <div class="stat-label">Total Keluar</div>
           <div class="stat-value" id="repKeluar">0</div>
         </div>
         <div class="stat-card">
-          <div class="stat-label">Total Nilai Masuk</div>
+          <div class="stat-label">Nilai Masuk</div>
           <div class="stat-value" id="repNilaiMasuk">Rp 0</div>
         </div>
         <div class="stat-card">
-          <div class="stat-label">Total Nilai Keluar</div>
+          <div class="stat-label">Nilai Keluar</div>
           <div class="stat-value" id="repNilaiKeluar">Rp 0</div>
         </div>
       </div>
@@ -316,7 +320,7 @@
             <tr>
               <th>Nama Produk</th>
               <th>Kategori</th>
-              <th>Stok Saat Ini</th>
+              <th>Stok</th>
               <th>Min. Stok</th>
               <th>Harga Modal</th>
               <th class="text-right">Aksi</th>
@@ -334,7 +338,7 @@
     <div class="modal-header"><h3>Impor Produk dari CSV</h3><button class="btn-close" onclick="closeImportModal()">×</button></div>
     <div style="padding: 20px 24px;">
       <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
-        Format CSV harus memiliki header kolom: <b>Nama Produk, Kategori, Stok Awal, Min Stok, Harga Modal</b>. (Pisahkan dengan koma).
+        Format header kolom: <b>Nama Produk, Kategori, Stok Awal, Min Stok, Harga Modal</b>.
       </p>
       <input type="file" id="csvFileInput" accept=".csv" style="margin-bottom: 16px;">
       <div id="importPreview" class="hidden">
@@ -385,10 +389,25 @@
 </div>
 
 <script>
+  // Script buka-tutup sidebar untuk Mobile
+  const layout = document.querySelector('.layout');
+  const overlay = document.getElementById('sidebarOverlay');
+  
   document.getElementById('menuToggle').addEventListener('click', () => {
-    document.querySelector('.layout').classList.toggle('sidebar-closed');
+    layout.classList.add('sidebar-open');
     setTimeout(() => { window.dispatchEvent(new Event('resize')); }, 350);
   });
+
+  overlay.addEventListener('click', () => {
+    layout.classList.remove('sidebar-open');
+    setTimeout(() => { window.dispatchEvent(new Event('resize')); }, 350);
+  });
+
+  function closeSidebarMobile() {
+    if (window.innerWidth <= 768) {
+      layout.classList.remove('sidebar-open');
+    }
+  }
 </script>
 <script type="module" src="js/app.js"></script>
 </body>
