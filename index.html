@@ -5,85 +5,84 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Inventory System</title>
   <link rel="stylesheet" href="css/style.css">
-  <!-- Font Awesome untuk Ikon -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
-<!-- AUTH SCREEN -->
+<!-- AUTH -->
 <div id="authScreen" class="auth-container">
   <div class="auth-box">
-    <h2>Inventory System</h2>
-    <p>Silakan login untuk melanjutkan</p>
-    <div id="loginError" class="error-msg hidden"></div>
-    <form id="loginForm">
-      <input type="email" id="loginEmail" placeholder="Email" required>
-      <input type="password" id="loginPass" placeholder="Password" required>
-      <button type="submit" class="btn-primary">Login</button>
-    </form>
+    <h2 style="margin-bottom: 20px;">Inventory System</h2>
+    <div id="authError" class="hidden" style="color: red; margin-bottom: 10px; font-size: 13px;"></div>
+    
+    <!-- FORM LOGIN -->
+    <div id="loginBox">
+      <form id="loginForm">
+        <input type="email" id="loginEmail" placeholder="Email" required>
+        <input type="password" id="loginPass" placeholder="Password" required>
+        <button type="submit" class="btn-primary">Login</button>
+        <p style="margin-top:15px; font-size:13px;">Belum punya akun? <a href="#" onclick="toggleAuth('register')" style="color:#2563eb;">Daftar</a></p>
+      </form>
+    </div>
+
+    <!-- FORM REGISTER -->
+    <div id="registerBox" class="hidden">
+      <form id="registerForm">
+        <input type="text" id="regNama" placeholder="Nama Lengkap" required>
+        <input type="email" id="regEmail" placeholder="Email" required>
+        <input type="password" id="regPass" placeholder="Password (min 6)" required>
+        <button type="submit" class="btn-primary">Daftar Akun</button>
+        <p style="margin-top:15px; font-size:13px;">Sudah punya akun? <a href="#" onclick="toggleAuth('login')" style="color:#2563eb;">Login</a></p>
+      </form>
+    </div>
   </div>
 </div>
 
-<!-- MAIN APP -->
+<!-- APP -->
 <div id="appScreen" class="app-layout hidden">
-  
-  <!-- SIDEBAR -->
   <aside class="sidebar">
     <div class="sidebar-brand">
       <div class="brand-logo"></div>
-      <div class="brand-text">
-        <strong>Nama</strong>
-        <span>Perusahaan</span>
-      </div>
+      <div class="brand-text"><strong>Nama</strong><span>Perusahaan</span></div>
     </div>
 
     <nav class="sidebar-menu">
-      <a href="#" class="menu-item active" onclick="showPage('dashboard')"><i class="fa-solid fa-house"></i> Dashboard</a>
-      <a href="#" class="menu-item"><i class="fa-solid fa-file-invoice"></i> PO</a>
+      <a href="#" class="menu-item active" onclick="showPage('dashboard', this)"><i class="fa-solid fa-house"></i> Dashboard</a>
       
       <div class="menu-group">
-        <a href="#" class="menu-item" onclick="toggleSubmenu(this)"><i class="fa-solid fa-box"></i> Inventory <i class="fa-solid fa-chevron-down arrow"></i></a>
+        <div class="menu-item" onclick="toggleSubmenu(this)"><i class="fa-solid fa-box"></i> Inventory <i class="fa-solid fa-chevron-down arrow"></i></div>
         <div class="submenu">
-          <a href="#" onclick="showPage('inputStok')">Input Stok</a>
-          <a href="#" onclick="showPage('stok')">Stok</a>
-          <a href="#" onclick="showPage('history')">History</a>
+          <a href="#" onclick="showPage('inputStok', this)">Input Stok</a>
+          <a href="#" onclick="showPage('stok', this)">Stok</a>
+          <a href="#" onclick="showPage('history', this)">History</a>
         </div>
       </div>
-
-      <a href="#" class="menu-item"><i class="fa-solid fa-wallet"></i> Finance</a>
 
       <div class="menu-group">
-        <a href="#" class="menu-item" onclick="toggleSubmenu(this)"><i class="fa-solid fa-cubes"></i> Master <i class="fa-solid fa-chevron-down arrow"></i></a>
+        <div class="menu-item" onclick="toggleSubmenu(this)"><i class="fa-solid fa-cubes"></i> Master <i class="fa-solid fa-chevron-down arrow"></i></div>
         <div class="submenu">
-          <a href="#" onclick="showPage('masterProduk')">Produk</a>
-          <a href="#" onclick="showPage('masterMerk')">Merk</a>
-          <a href="#" onclick="showPage('masterJenis')">Jenis</a>
-          <a href="#" onclick="showPage('masterUkuran')" class="active">Ukuran</a>
+          <a href="#" onclick="showPage('masterProduk', this)">Produk</a>
+          <a href="#" onclick="showPage('masterMerk', this)">Merk</a>
+          <a href="#" onclick="showPage('masterJenis', this)">Jenis</a>
+          <a href="#" onclick="showPage('masterUkuran', this)">Ukuran</a>
         </div>
       </div>
-
-      <a href="#" class="menu-item"><i class="fa-solid fa-chart-pie"></i> Summary</a>
     </nav>
 
     <div class="sidebar-footer">
-      <a href="#" class="menu-item"><i class="fa-solid fa-gear"></i> Settings</a>
       <a href="#" class="menu-item" onclick="logout()"><i class="fa-solid fa-arrow-right-from-bracket"></i> Log Out</a>
     </div>
   </aside>
 
-  <!-- MAIN CONTENT -->
   <main class="main-content">
-    <!-- TOPBAR -->
     <header class="topbar">
       <div class="search-bar">
         <i class="fa-solid fa-magnifying-glass"></i>
         <input type="text" placeholder="Cari product...">
       </div>
       <div class="topbar-right">
-        <button class="icon-btn"><i class="fa-regular fa-bell"></i></button>
         <div class="user-profile">
-          <span>Admin</span>
+          <span id="userNameDisplay">Admin</span>
           <div class="avatar"></div>
         </div>
       </div>
@@ -91,113 +90,112 @@
 
     <div class="content-area">
       
-      <!-- PAGE: DASHBOARD -->
+      <!-- DASHBOARD -->
       <div id="page-dashboard" class="page-view">
         <div class="dashboard-cards">
           <div class="card stat-card">
             <div class="icon-box green"><i class="fa-solid fa-cube"></i></div>
-            <div class="stat-info"><span>Total Product</span><h3 id="statTotalProduk">0</h3><small>3 Categories</small></div>
-          </div>
-          <div class="card stat-card">
-            <div class="icon-box green"><i class="fa-solid fa-cube"></i></div>
-            <div class="stat-info"><span>Total Product</span><h3>186</h3></div>
-          </div>
-          <div class="card stat-card">
-            <div class="icon-box green"><i class="fa-solid fa-cube"></i></div>
-            <div class="stat-info"><span>Total Product</span><h3>186</h3></div>
+            <div class="stat-info"><span>Total Product</span><h3 id="statTotalProduk">0</h3><small>Kategori</small></div>
           </div>
           <div class="card stat-card warning">
             <div class="icon-box pink"><i class="fa-solid fa-triangle-exclamation"></i></div>
-            <div class="stat-info"><span>Low Stok</span><h3>Part PLFC 1000</h3><small>Hammer-Hammer QQ</small></div>
+            <div class="stat-info"><span>Low Stok</span><h3 id="statLowStok">0</h3><small>Produk Menipis</small></div>
           </div>
         </div>
-
         <div class="dashboard-tables">
           <div class="card">
-            <h3>PO</h3>
+            <h3>PO Terakhir</h3>
             <table class="data-table">
-              <thead><tr><th>No</th><th>Tanggal</th><th>No PO</th><th>Action</th></tr></thead>
-              <tbody id="dashPOTable">
-                <!-- Dummy -->
-                <tr><td>1.</td><td>01-04-2023</td><td>PO-00012</td><td><button class="btn-sm blue">Lihat</button></td></tr>
-              </tbody>
+              <thead><tr><th>Tanggal</th><th>No PO</th><th>Total Item</th></tr></thead>
+              <tbody id="dashPOTable"><tr><td colspan="3" style="text-align:center;">Belum ada data</td></tr></tbody>
             </table>
           </div>
           <div class="card">
-            <h3>Stok</h3>
+            <h3>Stok Terakhir</h3>
             <table class="data-table">
-              <thead><tr><th>No</th><th>SKU</th><th>Jumlah</th></tr></thead>
-              <tbody id="dashStokTable">
-                <!-- Dummy -->
-                <tr><td>1.</td><td>JFX-MN18STD</td><td>1</td></tr>
-              </tbody>
+              <thead><tr><th>SKU</th><th>Nama</th><th>Stok</th></tr></thead>
+              <tbody id="dashStokTable"><tr><td colspan="3" style="text-align:center;">Belum ada data</td></tr></tbody>
             </table>
           </div>
         </div>
       </div>
 
-      <!-- PAGE: INPUT STOK -->
+      <!-- INPUT STOK -->
       <div id="page-inputStok" class="page-view hidden">
-        <h2 class="page-title">Input Stok <br><small>Rabu, 03 Mei 2023</small></h2>
-        
+        <h2 class="page-title">Input Stok <br><small id="currentDate"></small></h2>
         <div class="input-stok-header">
-          <div class="form-inline">
-            <label>SKU</label>
-            <input type="text" id="inputSkuCepat" placeholder="Masukkan SKU">
-          </div>
-          <div class="form-inline">
-            <label>Jumlah</label>
-            <input type="number" id="inputJmlCepat" placeholder="Masukkan Jumlah">
-          </div>
-          <div class="form-inline">
-            <label>Harga</label>
-            <input type="number" id="inputHargaCepat" placeholder="Masukkan harga">
-          </div>
+          <div class="form-inline"><label>SKU</label><input type="text" id="inputSkuCepat" placeholder="Masukkan SKU"></div>
+          <div class="form-inline"><label>Jumlah</label><input type="number" id="inputJmlCepat" placeholder="Jumlah"></div>
+          <div class="form-inline"><label>Harga Beli</label><input type="number" id="inputHargaCepat" placeholder="Harga"></div>
           <button class="btn-primary" onclick="tambahKeTabelSementara()">Tambah</button>
         </div>
-
         <div class="card mt-20">
           <table class="data-table">
-            <thead>
-              <tr><th>SKU</th><th>Nama</th><th>Merk</th><th>Ukuran</th><th>Jenis</th><th>Rincian</th><th>Jumlah</th><th>Harga Jual</th><th>Action</th></tr>
-            </thead>
-            <tbody id="tempStokTable">
-              <!-- Baris akan diisi via JS -->
-            </tbody>
+            <thead><tr><th>SKU</th><th>Nama</th><th>Merk</th><th>Ukuran</th><th>Jenis</th><th>Jumlah</th><th>Harga</th><th>Action</th></tr></thead>
+            <tbody id="tempStokTable"><tr><td colspan="8" style="text-align:center; padding: 20px;">Belum ada barang di daftar.</td></tr></tbody>
           </table>
-          <div class="table-footer">
-            <button class="btn-primary" onclick="simpanStokMassal()">Simpan</button>
-          </div>
+          <div class="table-footer"><button class="btn-primary" onclick="simpanStokMassal()">Simpan Stok</button></div>
         </div>
       </div>
 
-      <!-- PAGE: MASTER UKURAN (Contoh Halaman Master) -->
+      <!-- MASTER DATA (UKURAN, MERK, JENIS) -->
       <div id="page-masterUkuran" class="page-view hidden">
         <div class="page-header-flex">
           <h2 class="page-title">Ukuran</h2>
-          <button class="btn-primary" onclick="openModalMaster()"><i class="fa-solid fa-plus"></i> Tambah Ukuran</button>
+          <button class="btn-primary" onclick="openModalMaster('ukuran')"><i class="fa-solid fa-plus"></i> Tambah Ukuran</button>
         </div>
-        <div class="card mt-20">
+        <div class="card"><table class="data-table"><thead><tr><th>No</th><th>Ukuran</th><th>Action</th></tr></thead><tbody id="tableMasterUkuran"></tbody></table></div>
+      </div>
+
+      <div id="page-masterMerk" class="page-view hidden">
+        <div class="page-header-flex">
+          <h2 class="page-title">Merk</h2>
+          <button class="btn-primary" onclick="openModalMaster('merk')"><i class="fa-solid fa-plus"></i> Tambah Merk</button>
+        </div>
+        <div class="card"><table class="data-table"><thead><tr><th>No</th><th>Merk</th><th>Action</th></tr></thead><tbody id="tableMasterMerk"></tbody></table></div>
+      </div>
+
+      <div id="page-masterJenis" class="page-view hidden">
+        <div class="page-header-flex">
+          <h2 class="page-title">Jenis</h2>
+          <button class="btn-primary" onclick="openModalMaster('jenis')"><i class="fa-solid fa-plus"></i> Tambah Jenis</button>
+        </div>
+        <div class="card"><table class="data-table"><thead><tr><th>No</th><th>Jenis</th><th>Action</th></tr></thead><tbody id="tableMasterJenis"></tbody></table></div>
+      </div>
+
+      <!-- MASTER PRODUK -->
+      <div id="page-masterProduk" class="page-view hidden">
+        <div class="page-header-flex">
+          <h2 class="page-title">Daftar Produk</h2>
+          <button class="btn-primary" onclick="bukaDetailProduk()"><i class="fa-solid fa-plus"></i> Tambah Produk</button>
+        </div>
+        <div class="card">
           <table class="data-table">
-            <thead><tr><th>No</th><th>Ukuran</th><th>Action</th></tr></thead>
-            <tbody id="tableMasterUkuran">
-              <!-- Diisi via JS -->
-            </tbody>
+            <thead><tr><th>SKU</th><th>Nama</th><th>Merk</th><th>Ukuran</th><th>Jenis</th><th>Stok</th><th>Harga Jual</th><th>Action</th></tr></thead>
+            <tbody id="tableMasterProduk"></tbody>
           </table>
         </div>
+      </div>
+
+      <!-- STOK & HISTORY (Tampilan Sederhana) -->
+      <div id="page-stok" class="page-view hidden">
+        <h2 class="page-title">Data Stok</h2>
+        <div class="card"><table class="data-table"><thead><tr><th>SKU</th><th>Nama</th><th>Stok Saat Ini</th></tr></thead><tbody id="tableStok"></tbody></table></div>
+      </div>
+
+      <div id="page-history" class="page-view hidden">
+        <h2 class="page-title">History Transaksi</h2>
+        <div class="card"><table class="data-table"><thead><tr><th>Tanggal</th><th>No PO</th><th>Total Item Masuk</th></tr></thead><tbody id="tableHistory"></tbody></table></div>
       </div>
 
     </div>
   </main>
 </div>
 
-<!-- MODAL DETAIL PRODUK -->
+<!-- MODAL PRODUK -->
 <div id="modalProduk" class="modal-overlay hidden">
   <div class="modal-content">
-    <div class="modal-header">
-      <h3>Detail Produk</h3>
-      <button class="close-btn" onclick="closeModal('modalProduk')">&times;</button>
-    </div>
+    <div class="modal-header"><h3>Detail Produk</h3><button class="close-btn" onclick="closeModal('modalProduk')">&times;</button></div>
     <form id="formProduk">
       <div class="modal-body">
         <div class="form-group"><label>SKU</label><input type="text" id="prodSku" required></div>
@@ -205,25 +203,21 @@
         <div class="form-group"><label>Merk</label><input type="text" id="prodMerk"></div>
         <div class="form-group"><label>Ukuran</label><input type="text" id="prodUkuran"></div>
         <div class="form-group"><label>Jenis</label><input type="text" id="prodJenis"></div>
-        <div class="form-group"><label>Jumlah</label><input type="number" id="prodJumlah" value="1"></div>
-        <div class="form-group"><label>Harga Jual</label><input type="number" id="prodHarga"></div>
-        <div class="form-group"><label>Detail</label><textarea id="prodDetail" rows="3"></textarea></div>
+        <div class="form-group"><label>Stok Awal</label><input type="number" id="prodJumlah" value="0"></div>
+        <div class="form-group"><label>Harga Jual</label><input type="number" id="prodHarga" value="0"></div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn-secondary" onclick="closeModal('modalProduk')">Batal</button>
-        <button type="submit" class="btn-primary">Tambah Stok</button>
+        <button type="submit" class="btn-primary">Simpan Produk</button>
       </div>
     </form>
   </div>
 </div>
 
-<!-- MODAL MASTER DATA -->
+<!-- MODAL MASTER -->
 <div id="modalMaster" class="modal-overlay hidden">
   <div class="modal-content" style="max-width: 400px;">
-    <div class="modal-header">
-      <h3>Tambah Data</h3>
-      <button class="close-btn" onclick="closeModal('modalMaster')">&times;</button>
-    </div>
+    <div class="modal-header"><h3 id="modalMasterTitle">Tambah Data</h3><button class="close-btn" onclick="closeModal('modalMaster')">&times;</button></div>
     <div class="modal-body">
       <div class="form-group"><label>Nama</label><input type="text" id="masterNama"></div>
     </div>
