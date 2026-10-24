@@ -6,38 +6,43 @@
   <title>Enterprise Inventory System</title>
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
+<!-- AUTH -->
 <div id="authScreen" class="auth-container">
   <div class="auth-box">
     <h2 style="margin-bottom: 20px;">Inventory System</h2>
     <div id="authError" class="hidden" style="color: red; margin-bottom: 10px; font-size: 13px;"></div>
+    
     <div id="loginBox">
       <form id="loginForm">
         <input type="email" id="loginEmail" placeholder="Email" required>
         <input type="password" id="loginPass" placeholder="Password" required>
         <button type="submit" class="btn-primary">Login</button>
-        <p style="margin-top:15px; font-size:13px;">Belum punya akun? <a href="#" onclick="toggleAuth('register')" style="color:#2563eb;">Daftar</a></p>
+        <p style="margin-top:15px; font-size:13px;">Belum punya akun? <a href="#" onclick="toggleAuth('register'); return false;" style="color:#2563eb;">Daftar</a></p>
       </form>
     </div>
+    
     <div id="registerBox" class="hidden">
       <form id="registerForm">
         <input type="text" id="regNama" placeholder="Nama Lengkap" required>
         <input type="email" id="regEmail" placeholder="Email" required>
-        <input type="password" id="regPass" placeholder="Password (min 6)" required>
+        <input type="password" id="regPass" placeholder="Password (min 6)" required minlength="6">
         <button type="submit" class="btn-primary">Daftar Akun</button>
-        <p style="margin-top:15px; font-size:13px;">Sudah punya akun? <a href="#" onclick="toggleAuth('login')" style="color:#2563eb;">Login</a></p>
+        <p style="margin-top:15px; font-size:13px;">Sudah punya akun? <a href="#" onclick="toggleAuth('login'); return false;" style="color:#2563eb;">Login</a></p>
       </form>
     </div>
   </div>
 </div>
 
+<!-- APP -->
 <div id="appScreen" class="app-layout hidden">
   <aside class="sidebar">
     <div class="sidebar-brand">
       <div class="brand-logo"></div>
-      <div class="brand-text"><strong>Nama</strong><span>Perusahaan</span></div>
+      <div class="brand-text"><strong>Inventory</strong><span>Enterprise</span></div>
     </div>
     <nav class="sidebar-menu">
       <a href="#" class="menu-item active" onclick="showPage('dashboard', this)"><i class="fa-solid fa-house"></i> Dashboard</a>
@@ -71,13 +76,17 @@
 
   <main class="main-content">
     <header class="topbar">
-      <div class="search-bar"><i class="fa-solid fa-magnifying-glass"></i><input type="text" placeholder="Cari product..."></div>
+      <div class="search-bar">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" id="globalSearch" placeholder="Cari SKU / Nama Produk..." onkeyup="filterTable()">
+      </div>
       <div class="topbar-right">
         <div class="user-profile"><span id="userNameDisplay">Admin</span><div class="avatar"></div></div>
       </div>
     </header>
 
     <div class="content-area">
+      
       <!-- DASHBOARD -->
       <div id="page-dashboard" class="page-view">
         <div class="dashboard-cards">
@@ -94,33 +103,41 @@
             <div class="stat-info"><span>Stok Menipis</span><h3 id="statLowStok">0</h3><small>Butuh Re-stock</small></div>
           </div>
         </div>
+        
         <div class="dashboard-tables">
           <div class="card">
-            <h3>Aktivitas Terakhir (PO Masuk)</h3>
-            <table class="data-table"><thead><tr><th>Tanggal</th><th>No PO</th><th>Total Item</th></tr></thead><tbody id="dashPOTable"></tbody></table>
+            <h3><i class="fa-solid fa-chart-simple"></i> Top 5 Stok Terbanyak</h3>
+            <canvas id="dashboardChart" height="150"></canvas>
           </div>
           <div class="card">
-            <h3>Aktivitas Terakhir (Barang Keluar)</h3>
-            <table class="data-table"><thead><tr><th>Tanggal</th><th>Produk</th><th>Jumlah</th></tr></thead><tbody id="dashOutTable"></tbody></table>
+            <h3>Aktivitas Terakhir</h3>
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead><tr><th>Tgl</th><th>Tipe</th><th>Produk</th><th>Qty</th></tr></thead>
+                <tbody id="dashHistoryTable"></tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>
 
       <!-- BARANG MASUK (PO) -->
       <div id="page-inputMasuk" class="page-view hidden">
-        <h2 class="page-title">Input Barang Masuk (PO) <br><small id="currentDate"></small></h2>
+        <h2 class="page-title">Input Barang Masuk (PO)</h2>
         <div class="input-stok-header">
-          <div class="form-inline"><label>SKU Produk</label><input type="text" id="inputSkuCepat" placeholder="Ketik SKU..."></div>
-          <div class="form-inline"><label>Jumlah Masuk</label><input type="number" id="inputJmlCepat" placeholder="0"></div>
+          <div class="form-inline"><label>SKU Produk</label><input type="text" id="inputSkuCepat" placeholder="Ketik SKU (Cth: PRD-001)"></div>
+          <div class="form-inline"><label>Jumlah Masuk</label><input type="number" id="inputJmlCepat" placeholder="0" min="1"></div>
           <div class="form-inline"><label>Harga Beli</label><input type="number" id="inputHargaCepat" placeholder="Rp"></div>
-          <button class="btn-primary" onclick="tambahKeTabelSementara()">Tambah ke Daftar</button>
+          <button class="btn-primary" onclick="tambahKeTabelSementara()"><i class="fa-solid fa-cart-plus"></i> Tambah</button>
         </div>
         <div class="card mt-20">
-          <table class="data-table">
-            <thead><tr><th>SKU</th><th>Nama</th><th>Lokasi</th><th>Jumlah Masuk</th><th>Harga Beli</th><th>Action</th></tr></thead>
-            <tbody id="tempStokTable"></tbody>
-          </table>
-          <div class="table-footer"><button class="btn-primary" onclick="simpanStokMassal()">Simpan Transaksi Masuk</button></div>
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead><tr><th>SKU</th><th>Nama</th><th>Lokasi</th><th>Jumlah Masuk</th><th>Harga Beli</th><th>Action</th></tr></thead>
+              <tbody id="tempStokTable"></tbody>
+            </table>
+          </div>
+          <div class="table-footer"><button class="btn-primary" onclick="simpanStokMassal()"><i class="fa-solid fa-floppy-disk"></i> Simpan Transaksi</button></div>
         </div>
       </div>
 
@@ -129,63 +146,65 @@
         <h2 class="page-title">Input Barang Keluar</h2>
         <div class="card" style="max-width: 600px;">
           <form id="formKeluar">
-            <div class="form-group">
-              <label>Pilih Produk (Berdasarkan SKU / Nama)</label>
-              <select id="outProdukId" required></select>
-            </div>
+            <div class="form-group"><label>Pilih Produk (Berdasarkan SKU)</label><select id="outProdukId" required></select></div>
             <div class="form-group"><label>Jumlah Keluar</label><input type="number" id="outJumlah" required min="1"></div>
             <div class="form-group"><label>Tanggal</label><input type="date" id="outTanggal" required></div>
-            <div class="form-group"><label>Keterangan (Alasan Keluar)</label><input type="text" id="outKet" placeholder="Contoh: Terjual, Barang Rusak, dll" required></div>
-            <button type="submit" class="btn-primary">Keluarkan Barang</button>
+            <div class="form-group"><label>Keterangan (Alasan Keluar)</label><input type="text" id="outKet" placeholder="Cth: Terjual, Barang Rusak" required></div>
+            <button type="submit" class="btn-primary"><i class="fa-solid fa-arrow-up-from-bracket"></i> Proses Keluar</button>
           </form>
         </div>
       </div>
 
-      <!-- MASTER DATA -->
+      <!-- MASTER PRODUK -->
       <div id="page-masterProduk" class="page-view hidden">
         <div class="page-header-flex">
           <h2 class="page-title">Master Produk</h2>
-          <button class="btn-primary" onclick="bukaDetailProduk()"><i class="fa-solid fa-plus"></i> Produk Baru</button>
+          <button class="btn-primary" onclick="bukaDetailProduk()"><i class="fa-solid fa-plus"></i> Tambah Produk</button>
         </div>
         <div class="card">
-          <table class="data-table">
-            <thead><tr><th>SKU</th><th>Nama</th><th>Lokasi</th><th>Status</th><th>Stok</th><th>Harga Jual</th><th>Action</th></tr></thead>
-            <tbody id="tableMasterProduk"></tbody>
-          </table>
+          <div class="table-responsive">
+            <table class="data-table" id="tableProduk">
+              <thead><tr><th>SKU</th><th>Nama</th><th>Lokasi</th><th>Status</th><th>Stok</th><th>Harga Jual</th><th>Action</th></tr></thead>
+              <tbody id="tableMasterProduk"></tbody>
+            </table>
+          </div>
         </div>
       </div>
 
-      <div id="page-masterUkuran" class="page-view hidden">
-        <div class="page-header-flex"><h2 class="page-title">Master Ukuran</h2><button class="btn-primary" onclick="openModalMaster('ukuran')"><i class="fa-solid fa-plus"></i> Tambah</button></div>
-        <div class="card"><table class="data-table"><thead><tr><th>No</th><th>Nama Ukuran</th><th>Action</th></tr></thead><tbody id="tableMasterUkuran"></tbody></table></div>
-      </div>
+      <!-- MASTER DYNAMIC (Merk, Jenis, Ukuran, Lokasi) -->
       <div id="page-masterMerk" class="page-view hidden">
-        <div class="page-header-flex"><h2 class="page-title">Master Merk</h2><button class="btn-primary" onclick="openModalMaster('merk')"><i class="fa-solid fa-plus"></i> Tambah</button></div>
-        <div class="card"><table class="data-table"><thead><tr><th>No</th><th>Nama Merk</th><th>Action</th></tr></thead><tbody id="tableMasterMerk"></tbody></table></div>
+        <div class="page-header-flex"><h2 class="page-title">Master Merk</h2><button class="btn-primary" onclick="openModalMaster('merk')"><i class="fa-solid fa-plus"></i> Tambah Merk</button></div>
+        <div class="card"><div class="table-responsive"><table class="data-table"><thead><tr><th>No</th><th>Nama Merk</th><th>Action</th></tr></thead><tbody id="tableMasterMerk"></tbody></table></div></div>
       </div>
       <div id="page-masterJenis" class="page-view hidden">
-        <div class="page-header-flex"><h2 class="page-title">Master Jenis</h2><button class="btn-primary" onclick="openModalMaster('jenis')"><i class="fa-solid fa-plus"></i> Tambah</button></div>
-        <div class="card"><table class="data-table"><thead><tr><th>No</th><th>Nama Jenis</th><th>Action</th></tr></thead><tbody id="tableMasterJenis"></tbody></table></div>
+        <div class="page-header-flex"><h2 class="page-title">Master Jenis</h2><button class="btn-primary" onclick="openModalMaster('jenis')"><i class="fa-solid fa-plus"></i> Tambah Jenis</button></div>
+        <div class="card"><div class="table-responsive"><table class="data-table"><thead><tr><th>No</th><th>Nama Jenis</th><th>Action</th></tr></thead><tbody id="tableMasterJenis"></tbody></table></div></div>
+      </div>
+      <div id="page-masterUkuran" class="page-view hidden">
+        <div class="page-header-flex"><h2 class="page-title">Master Ukuran</h2><button class="btn-primary" onclick="openModalMaster('ukuran')"><i class="fa-solid fa-plus"></i> Tambah Ukuran</button></div>
+        <div class="card"><div class="table-responsive"><table class="data-table"><thead><tr><th>No</th><th>Nama Ukuran</th><th>Action</th></tr></thead><tbody id="tableMasterUkuran"></tbody></table></div></div>
       </div>
       <div id="page-masterLokasi" class="page-view hidden">
-        <div class="page-header-flex"><h2 class="page-title">Master Lokasi</h2><button class="btn-primary" onclick="openModalMaster('lokasi')"><i class="fa-solid fa-plus"></i> Tambah</button></div>
-        <div class="card"><table class="data-table"><thead><tr><th>No</th><th>Nama Lokasi</th><th>Action</th></tr></thead><tbody id="tableMasterLokasi"></tbody></table></div>
+        <div class="page-header-flex"><h2 class="page-title">Master Lokasi</h2><button class="btn-primary" onclick="openModalMaster('lokasi')"><i class="fa-solid fa-plus"></i> Tambah Lokasi</button></div>
+        <div class="card"><div class="table-responsive"><table class="data-table"><thead><tr><th>No</th><th>Nama Lokasi</th><th>Action</th></tr></thead><tbody id="tableMasterLokasi"></tbody></table></div></div>
       </div>
 
       <!-- DATA STOK -->
       <div id="page-stok" class="page-view hidden">
         <h2 class="page-title">Data Stok Real-time</h2>
-        <div class="card"><table class="data-table"><thead><tr><th>SKU</th><th>Nama</th><th>Lokasi</th><th>Stok Saat Ini</th></tr></thead><tbody id="tableStok"></tbody></table></div>
+        <div class="card"><div class="table-responsive"><table class="data-table"><thead><tr><th>SKU</th><th>Nama</th><th>Lokasi</th><th>Stok Saat Ini</th></tr></thead><tbody id="tableStok"></tbody></table></div></div>
       </div>
 
       <!-- HISTORY -->
       <div id="page-history" class="page-view hidden">
         <h2 class="page-title">Semua History Transaksi</h2>
         <div class="card">
-          <table class="data-table">
-            <thead><tr><th>Tanggal</th><th>Tipe</th><th>Produk</th><th>Jumlah</th><th>Keterangan</th></tr></thead>
-            <tbody id="tableHistory"></tbody>
-          </table>
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead><tr><th>Tanggal</th><th>Tipe</th><th>Produk</th><th>Jumlah</th><th>Keterangan</th></tr></thead>
+              <tbody id="tableHistory"></tbody>
+            </table>
+          </div>
         </div>
       </div>
 
@@ -194,38 +213,39 @@
 </div>
 
 <!-- MODAL PRODUK -->
-<div id="modalProduk" class="modal-overlay hidden">
-  <div class="modal-content">
-    <div class="modal-header"><h3>Detail Produk Baru</h3><button class="close-btn" onclick="closeModal('modalProduk')">&times;</button></div>
+<div id="modalProduk" class="modal-overlay hidden" onclick="closeModalOutside(event, 'modalProduk')">
+  <div class="modal-content" onclick="event.stopPropagation()">
+    <div class="modal-header"><h3 id="modalProdukTitle">Detail Produk Baru</h3><button type="button" class="close-btn" onclick="closeModal('modalProduk')">&times;</button></div>
     <form id="formProduk">
+      <input type="hidden" id="prodId"> <!-- Untuk edit -->
       <div class="modal-body">
         <div class="form-group"><label>SKU (Unik) *</label><input type="text" id="prodSku" required></div>
         <div class="form-group"><label>Nama Produk *</label><input type="text" id="prodNama" required></div>
         <div class="form-group"><label>Merk</label><input type="text" id="prodMerk"></div>
-        <div class="form-group"><label>Lokasi Penyimpanan</label><input type="text" id="prodLokasi" placeholder="Gudang A / Rak 1"></div>
+        <div class="form-group"><label>Lokasi Penyimpanan</label><input type="text" id="prodLokasi" placeholder="Cth: Rak A1"></div>
         <div class="form-group"><label>Jenis</label><input type="text" id="prodJenis"></div>
         <div class="form-group"><label>Ukuran</label><input type="text" id="prodUkuran"></div>
         <div class="form-group"><label>Status Barang</label>
           <select id="prodStatus"><option value="Tersedia">Tersedia</option><option value="Rusak/Nonaktif">Rusak/Nonaktif</option></select>
         </div>
-        <div class="form-group"><label>Harga Jual (Rp)</label><input type="number" id="prodHarga" value="0"></div>
+        <div class="form-group"><label>Harga Jual (Rp)</label><input type="number" id="prodHarga" value="0" min="0"></div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn-secondary" onclick="closeModal('modalProduk')">Batal</button>
-        <button type="submit" class="btn-primary">Simpan Produk</button>
+        <button type="submit" class="btn-primary" id="btnSimpanProduk">Simpan Produk</button>
       </div>
     </form>
   </div>
 </div>
 
 <!-- MODAL MASTER -->
-<div id="modalMaster" class="modal-overlay hidden">
-  <div class="modal-content" style="max-width: 400px;">
-    <div class="modal-header"><h3 id="modalMasterTitle">Tambah Data</h3><button class="close-btn" onclick="closeModal('modalMaster')">&times;</button></div>
-    <div class="modal-body"><div class="form-group"><label>Nama</label><input type="text" id="masterNama"></div></div>
+<div id="modalMaster" class="modal-overlay hidden" onclick="closeModalOutside(event, 'modalMaster')">
+  <div class="modal-content" style="max-width: 400px;" onclick="event.stopPropagation()">
+    <div class="modal-header"><h3 id="modalMasterTitle">Tambah Data</h3><button type="button" class="close-btn" onclick="closeModal('modalMaster')">&times;</button></div>
+    <div class="modal-body"><div class="form-group"><label>Nama</label><input type="text" id="masterNama" required></div></div>
     <div class="modal-footer">
       <button type="button" class="btn-secondary" onclick="closeModal('modalMaster')">Batal</button>
-      <button type="button" class="btn-primary" onclick="simpanMaster()">Simpan</button>
+      <button type="button" class="btn-primary" onclick="simpanMaster()">Simpan Data</button>
     </div>
   </div>
 </div>
