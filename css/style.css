@@ -144,39 +144,117 @@ button { cursor: pointer; }
 .page-header-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
 .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 99; opacity: 0; transition: opacity 0.3s; }
 
-/* ====== FOOTER MODERN ====== */
+/* ====== FOOTER CLEAN (SAAS STYLE) ====== */
 .app-footer {
-  background: #4f46e5; /* Warna Ungu Indigo */
-  color: white;
-  padding: 40px;
-  border-radius: 16px;
-  margin: 0 24px 24px 24px;
+  background: #ffffff;
+  border-top: 1px solid #e5e7eb;
+  color: #6b7280;
+  padding: 24px 32px;
+  margin-top: auto; /* Memastikan footer selalu menempel di bawah layar */
   display: flex;
   justify-content: space-between;
+  align-items: center;
   flex-wrap: wrap;
-  gap: 40px;
-  box-shadow: 0 10px 30px rgba(79, 70, 229, 0.2);
+  gap: 16px;
+  font-size: 13px;
+  width: 100%;
 }
 
-.footer-left { flex: 1; min-width: 280px; display: flex; flex-direction: column; justify-content: center; }
-.footer-brand { display: flex; align-items: center; gap: 10px; font-size: 22px; font-weight: 700; margin-bottom: 20px; letter-spacing: -0.5px; }
-.footer-brand i { font-size: 24px; }
-.footer-left p { font-size: 13px; color: #c7d2fe; margin-bottom: 8px; line-height: 1.5; }
-.footer-left a { color: white; text-decoration: none; font-weight: 600; }
-.footer-left a:hover { text-decoration: underline; }
+/* Sisi Kiri (Brand & Copyright) */
+.footer-left {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
 
-.footer-right { display: flex; flex-direction: column; align-items: flex-end; gap: 24px; justify-content: space-between; }
-.top-right-row { display: flex; align-items: center; gap: 24px; }
-.social-link { color: white; font-size: 22px; transition: 0.2s; }
-.social-link:hover { transform: translateY(-3px) scale(1.1); color: #c7d2fe; }
+.footer-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 4px;
+}
 
-.badges { display: flex; gap: 12px; }
-.badge-circle { width: 56px; height: 56px; border-radius: 50%; background: white; display: flex; align-items: center; justify-content: center; color: #4f46e5; font-size: 10px; font-weight: 700; text-align: center; line-height: 1.2; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+.footer-brand i {
+  color: #2563eb; /* Aksen biru sesuai tema web */
+  font-size: 18px;
+}
 
-.footer-links { display: flex; gap: 48px; }
-.link-col { display: flex; flex-direction: column; gap: 12px; }
-.link-col a { color: #c7d2fe; font-size: 13px; text-decoration: none; transition: 0.2s; font-weight: 500; }
-.link-col a:hover { color: white; text-decoration: underline; }
+.footer-left p {
+  margin: 0;
+  color: #6b7280;
+}
+
+.footer-left a {
+  color: #2563eb;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.footer-left a:hover {
+  text-decoration: underline;
+}
+
+/* Sisi Kanan (Links & Icon) */
+.footer-right {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+.footer-links {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.footer-links a {
+  color: #6b7280;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.footer-links a:hover {
+  color: #2563eb;
+}
+
+.social-link {
+  color: #111827;
+  font-size: 22px;
+  transition: transform 0.2s, color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.social-link:hover {
+  color: #2563eb;
+  transform: scale(1.1);
+}
+
+/* Responsif untuk HP / Tablet */
+@media (max-width: 900px) {
+  .app-footer {
+    flex-direction: column;
+    text-align: center;
+    padding: 20px;
+  }
+  
+  .footer-left {
+    align-items: center;
+  }
+  
+  .footer-right {
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .footer-links {
+    justify-content: center;
+  }
+}
 
 /* ===== KEYFRAMES ===== */
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
