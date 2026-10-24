@@ -13,13 +13,10 @@ let chartInstance = null;
 /* =========================================
    UI & NAVIGATION 
 ========================================= */
-// FUNGSI BARU: Deteksi Desktop vs Mobile
 window.toggleSidebar = () => {
   if (window.innerWidth > 1024) {
-    // Di Desktop: Gunakan class sidebar-closed pada layout
     document.querySelector('.app-layout').classList.toggle('sidebar-closed');
   } else {
-    // Di Mobile: Gunakan class open pada sidebar dan overlay
     document.getElementById('sidebar').classList.toggle('open');
     document.getElementById('sidebarOverlay').classList.toggle('open');
   }
@@ -27,8 +24,7 @@ window.toggleSidebar = () => {
 
 window.toggleProfileMenu = (event) => {
   event.stopPropagation();
-  const dropdown = document.getElementById('profileDropdown');
-  dropdown.classList.toggle('hidden');
+  document.getElementById('profileDropdown').classList.toggle('hidden');
 };
 
 document.addEventListener('click', (event) => {
@@ -48,7 +44,6 @@ window.toggleAuth = (type) => {
 };
 
 window.showPage = (pageId, el) => {
-  // Tutup sidebar otomatis HANYA di Mobile/Tablet saat menu diklik
   if (window.innerWidth <= 1024) {
     document.getElementById('sidebar').classList.remove('open');
     document.getElementById('sidebarOverlay').classList.remove('open');
@@ -73,6 +68,7 @@ window.showPage = (pageId, el) => {
   if (pageId === 'masterProduk') loadProducts();
   if (pageId === 'stok') loadStokPage();
   if (pageId === 'history') loadHistory();
+  if (pageId === 'settings') loadSettingsData();
   if (pageId === 'inputKeluar') {
     loadDropdownProduk();
     document.getElementById('outTanggal').value = new Date().toISOString().split('T')[0];
@@ -103,7 +99,7 @@ window.filterTable = () => {
 };
 
 /* =========================================
-   AUTHENTICATION (Tidak Berubah)
+   AUTHENTICATION
 ========================================= */
 document.getElementById('loginForm').addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -135,11 +131,21 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
 
 window.logout = async () => { await supabase.auth.signOut(); location.reload(); };
 
-function initApp(user) {
+async function initApp(user) {
   currentUser = user;
   document.getElementById('authScreen').classList.add('hidden');
   document.getElementById('appScreen').classList.remove('hidden');
-  document.getElementById('userNameDisplay').textContent = user.email.split('@')[0];
+  
+  // Load profil dari database
+  const { data } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+  if (data) {
+    document.getElementById('userNameDisplay').textContent = data.nama || user.email.split('@')[0];
+    if (data.nama_perusahaan) {
+      document.getElementById('sidebarBrandName').textContent = data.nama_perusahaan;
+    }
+  } else {
+    document.getElementById('userNameDisplay').textContent = user.email.split('@')[0];
+  }
   
   const firstGroup = document.querySelector('.menu-group');
   if(firstGroup) toggleSubmenu(firstGroup.querySelector('.menu-item'));
@@ -150,7 +156,37 @@ function initApp(user) {
 supabase.auth.getSession().then(({ data: { session } }) => { if (session) initApp(session.user); });
 
 /* =========================================
-   LOGIKA DATA (Tidak Berubah)
+   SETTINGS (BARU)
+========================================= */
+async function loadSettingsData() {
+  const { data } = await supabase.from('profiles').select('*').eq('id', currentUser.id).single();
+  if (data) {
+    document.getElementById('settingCompanyName').value = data.nama_perusahaan || 'Inventory';
+    document.getElementById('settingUsername').value = data.nama || currentUser.email.split('@')[0];
+  }
+}
+
+document.getElementById('formSettings').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const newCompany = document.getElementById('settingCompanyName').value;
+  const newUsername = document.getElementById('settingUsername').value;
+
+  const { error } = await supabase.from('profiles').update({
+    nama: newUsername,
+    nama_perusahaan: newCompany
+  }).eq('id', currentUser.id);
+
+  if (error) return alert('Gagal menyimpan: ' + error.message);
+
+  alert('Pengaturan berhasil disimpan!');
+  
+  // Update UI secara langsung tanpa refresh
+  document.getElementById('sidebarBrandName').textContent = newCompany;
+  document.getElementById('userNameDisplay').textContent = newUsername;
+});
+
+/* =========================================
+   LOGIKA DATA (DASHBOARD & CRUD)
 ========================================= */
 async function loadDashboard() {
   const { data: products } = await supabase.from('products').select('*').order('nama').limit(5);
