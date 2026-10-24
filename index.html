@@ -3,412 +3,237 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Rekap Stok Barang</title>
+  <title>Inventory System</title>
   <link rel="stylesheet" href="css/style.css">
+  <!-- Font Awesome untuk Ikon -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
-<!-- ===== AUTH SCREENS ===== -->
-<div id="authScreen">
-  <!-- LOGIN -->
-  <div id="loginView" class="auth-view">
-    <div class="auth-card">
-      <div class="logo">STOK<span>APP</span></div>
-      <h1>Masuk ke Sistem</h1>
-      <p class="subtitle">Kelola inventaris barang kantor Anda.</p>
-      <div id="loginError" class="alert alert-error hidden"></div>
-      <form id="loginForm">
-        <div class="field"><label>Email</label><input type="email" id="loginEmail" required autocomplete="email" placeholder="nama@kantor.com"></div>
-        <div class="field"><label>Password</label><input type="password" id="loginPass" required autocomplete="current-password" placeholder="••••••••"></div>
-        <button type="submit" class="btn btn-primary" id="loginBtn">Masuk</button>
-      </form>
-      <div class="auth-links">
-        <a href="#" onclick="showAuthView('forgotView'); return false;">Lupa password?</a>
-        <a href="#" onclick="showAuthView('signupView'); return false;">Buat akun baru</a>
-      </div>
-    </div>
-  </div>
-
-  <!-- SIGNUP -->
-  <div id="signupView" class="auth-view hidden">
-    <div class="auth-card">
-      <div class="logo">STOK<span>APP</span></div>
-      <h1>Buat Akun</h1>
-      <p class="subtitle">Daftar untuk mulai mengelola stok.</p>
-      <div id="signupError" class="alert alert-error hidden"></div>
-      <div id="signupSuccess" class="alert alert-success hidden"></div>
-      <form id="signupForm">
-        <div class="field"><label>Nama Lengkap</label><input type="text" id="signupNama" required autocomplete="name" placeholder="Nama Anda"></div>
-        <div class="field"><label>Email</label><input type="email" id="signupEmail" required autocomplete="email" placeholder="nama@kantor.com"></div>
-        <div class="field"><label>Password</label><input type="password" id="signupPass" required minlength="6" autocomplete="new-password" placeholder="Minimal 6 karakter"></div>
-        <button type="submit" class="btn btn-primary" id="signupBtn">Daftar</button>
-      </form>
-      <div class="auth-links"><a href="#" onclick="showAuthView('loginView'); return false;">Kembali ke Login</a></div>
-    </div>
-  </div>
-
-  <!-- FORGOT -->
-  <div id="forgotView" class="auth-view hidden">
-    <div class="auth-card">
-      <div class="logo">STOK<span>APP</span></div>
-      <h1>Lupa Password</h1>
-      <p class="subtitle">Masukkan email untuk menerima link reset.</p>
-      <div id="forgotError" class="alert alert-error hidden"></div>
-      <div id="forgotSuccess" class="alert alert-success hidden"></div>
-      <form id="forgotForm">
-        <div class="field"><label>Email Terdaftar</label><input type="email" id="forgotEmail" required autocomplete="email" placeholder="nama@kantor.com"></div>
-        <button type="submit" class="btn btn-primary" id="forgotBtn">Kirim Link Reset</button>
-      </form>
-      <div class="auth-links"><a href="#" onclick="showAuthView('loginView'); return false;">Kembali ke Login</a></div>
-    </div>
-  </div>
-
-  <!-- RESET -->
-  <div id="resetView" class="auth-view hidden">
-    <div class="auth-card">
-      <div class="logo">STOK<span>APP</span></div>
-      <h1>Reset Password</h1>
-      <p class="subtitle">Masukkan password baru Anda.</p>
-      <div id="resetError" class="alert alert-error hidden"></div>
-      <div id="resetSuccess" class="alert alert-success hidden"></div>
-      <form id="resetForm">
-        <div class="field"><label>Password Baru</label><input type="password" id="resetPass" required minlength="6" autocomplete="new-password" placeholder="Minimal 6 karakter"></div>
-        <div class="field"><label>Konfirmasi Password</label><input type="password" id="resetPassConfirm" required minlength="6" autocomplete="new-password" placeholder="Ulangi password"></div>
-        <button type="submit" class="btn btn-primary" id="resetBtn">Simpan Password</button>
-      </form>
-    </div>
+<!-- AUTH SCREEN -->
+<div id="authScreen" class="auth-container">
+  <div class="auth-box">
+    <h2>Inventory System</h2>
+    <p>Silakan login untuk melanjutkan</p>
+    <div id="loginError" class="error-msg hidden"></div>
+    <form id="loginForm">
+      <input type="email" id="loginEmail" placeholder="Email" required>
+      <input type="password" id="loginPass" placeholder="Password" required>
+      <button type="submit" class="btn-primary">Login</button>
+    </form>
   </div>
 </div>
 
-<!-- ===== MAIN APP ===== -->
-<div id="appScreen" class="layout hidden">
-  <!-- Overlay untuk Mobile -->
-  <div id="sidebarOverlay" class="sidebar-overlay"></div>
-
+<!-- MAIN APP -->
+<div id="appScreen" class="app-layout hidden">
+  
   <!-- SIDEBAR -->
-  <aside class="sidebar" id="sidebar">
-    <div class="sidebar-brand">STOK<span>APP</span></div>
-    <nav class="sidebar-nav">
-      <a href="#" class="nav-item active" onclick="switchPage('dashboard', this); closeSidebarMobile(); return false;">Dashboard</a>
-      <a href="#" class="nav-item" onclick="switchPage('report', this); closeSidebarMobile(); return false;">Laporan</a>
-      <a href="#" class="nav-item" onclick="openCategoryModal(); closeSidebarMobile(); return false;">Kelola Kategori</a>
-      <a href="#" class="nav-item" onclick="openProductModal(); closeSidebarMobile(); return false;">Kelola Produk</a>
-    </nav>
-    <div class="sidebar-footer">
-      <div class="user-block">
-        <div class="user-name" id="userName">-</div>
-        <div class="user-email" id="userEmail">-</div>
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-logo"></div>
+      <div class="brand-text">
+        <strong>Nama</strong>
+        <span>Perusahaan</span>
       </div>
-      <button class="btn btn-outline" onclick="logout()">Logout</button>
+    </div>
+
+    <nav class="sidebar-menu">
+      <a href="#" class="menu-item active" onclick="showPage('dashboard')"><i class="fa-solid fa-house"></i> Dashboard</a>
+      <a href="#" class="menu-item"><i class="fa-solid fa-file-invoice"></i> PO</a>
+      
+      <div class="menu-group">
+        <a href="#" class="menu-item" onclick="toggleSubmenu(this)"><i class="fa-solid fa-box"></i> Inventory <i class="fa-solid fa-chevron-down arrow"></i></a>
+        <div class="submenu">
+          <a href="#" onclick="showPage('inputStok')">Input Stok</a>
+          <a href="#" onclick="showPage('stok')">Stok</a>
+          <a href="#" onclick="showPage('history')">History</a>
+        </div>
+      </div>
+
+      <a href="#" class="menu-item"><i class="fa-solid fa-wallet"></i> Finance</a>
+
+      <div class="menu-group">
+        <a href="#" class="menu-item" onclick="toggleSubmenu(this)"><i class="fa-solid fa-cubes"></i> Master <i class="fa-solid fa-chevron-down arrow"></i></a>
+        <div class="submenu">
+          <a href="#" onclick="showPage('masterProduk')">Produk</a>
+          <a href="#" onclick="showPage('masterMerk')">Merk</a>
+          <a href="#" onclick="showPage('masterJenis')">Jenis</a>
+          <a href="#" onclick="showPage('masterUkuran')" class="active">Ukuran</a>
+        </div>
+      </div>
+
+      <a href="#" class="menu-item"><i class="fa-solid fa-chart-pie"></i> Summary</a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <a href="#" class="menu-item"><i class="fa-solid fa-gear"></i> Settings</a>
+      <a href="#" class="menu-item" onclick="logout()"><i class="fa-solid fa-arrow-right-from-bracket"></i> Log Out</a>
     </div>
   </aside>
 
   <!-- MAIN CONTENT -->
   <main class="main-content">
+    <!-- TOPBAR -->
     <header class="topbar">
-      <div style="display:flex; align-items:center; gap:12px;">
-        <!-- Tombol Menu Mobile -->
-        <button id="menuToggle" class="btn-menu">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
-        </button>
-        <h2 id="pageTitle">Inventory Overview</h2>
+      <div class="search-bar">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" placeholder="Cari product...">
+      </div>
+      <div class="topbar-right">
+        <button class="icon-btn"><i class="fa-regular fa-bell"></i></button>
+        <div class="user-profile">
+          <span>Admin</span>
+          <div class="avatar"></div>
+        </div>
       </div>
     </header>
 
-    <!-- PAGE: DASHBOARD -->
-    <div id="page-dashboard">
-      <!-- Low Stock Alert -->
-      <div id="lowStockBanner" class="alert-banner hidden" style="margin-bottom: 20px; border-radius: 8px; border: 1px solid #fca5a5; background: #fef2f2; color: #991b1b; padding: 16px; font-size: 14px;">
-        <strong>Peringatan Stok:</strong> <span id="lowStockText"></span>
-      </div>
-
-      <div class="stats">
-        <div class="stat-card">
-          <div class="stat-label">Total Produk</div>
-          <div class="stat-value" id="statBarang">0</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Barang Masuk</div>
-          <div class="stat-value" id="statMasuk">0</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Barang Keluar</div>
-          <div class="stat-value" id="statKeluar">0</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Nilai Persediaan</div>
-          <div class="stat-value" id="statNilai">Rp 0</div>
-        </div>
-      </div>
-
-      <div class="dashboard-grid">
-        <div class="card chart-card">
-          <div class="card-header"><h3>Stok per Kategori</h3></div>
-          <div class="chart-wrap"><canvas id="stockChart"></canvas></div>
-        </div>
-
-        <div class="card form-card">
-          <div class="card-header"><h3>Tambah Transaksi</h3></div>
-          <form id="transactionForm">
-            <div class="form-grid">
-              <div class="field">
-                <label>Pilih Produk</label>
-                <select id="inputProduct" required></select>
-              </div>
-              <div class="field">
-                <label>Tipe Transaksi</label>
-                <select id="inputTipe" required>
-                  <option value="masuk">Barang Masuk</option>
-                  <option value="keluar">Barang Keluar</option>
-                  <option value="penyesuaian">Penyesuaian (Stock Opname)</option>
-                </select>
-              </div>
-              <div class="form-row-2">
-                <div class="field">
-                  <label>Jumlah</label>
-                  <input type="number" id="inputJml" required step="1" placeholder="Gunakan minus (-) untuk penyesuaian kurang">
-                </div>
-                <div class="field"><label>Tanggal</label><input type="date" id="inputTgl" required></div>
-              </div>
-              <div class="field">
-                <label>Keterangan / Alasan</label>
-                <input type="text" id="inputKet" placeholder="Contoh: Pembelian dari supplier / Barang rusak" required>
-              </div>
-            </div>
-            <div class="form-actions">
-              <button type="submit" class="btn btn-primary" id="submitBtn">Simpan Transaksi</button>
-            </div>
-          </form>
-        </div>
-      </div>
-
-      <div class="card table-card">
-        <div class="card-header table-header">
-          <h3>Riwayat Transaksi</h3>
-          <div class="table-actions">
-            <button class="btn btn-outline" onclick="openImportModal()">Impor CSV</button>
-            <button class="btn btn-outline" onclick="exportCSV()">Export CSV</button>
-            <input type="text" id="searchInput" placeholder="Cari nama produk..." class="search-input">
+    <div class="content-area">
+      
+      <!-- PAGE: DASHBOARD -->
+      <div id="page-dashboard" class="page-view">
+        <div class="dashboard-cards">
+          <div class="card stat-card">
+            <div class="icon-box green"><i class="fa-solid fa-cube"></i></div>
+            <div class="stat-info"><span>Total Product</span><h3 id="statTotalProduk">0</h3><small>3 Categories</small></div>
+          </div>
+          <div class="card stat-card">
+            <div class="icon-box green"><i class="fa-solid fa-cube"></i></div>
+            <div class="stat-info"><span>Total Product</span><h3>186</h3></div>
+          </div>
+          <div class="card stat-card">
+            <div class="icon-box green"><i class="fa-solid fa-cube"></i></div>
+            <div class="stat-info"><span>Total Product</span><h3>186</h3></div>
+          </div>
+          <div class="card stat-card warning">
+            <div class="icon-box pink"><i class="fa-solid fa-triangle-exclamation"></i></div>
+            <div class="stat-info"><span>Low Stok</span><h3>Part PLFC 1000</h3><small>Hammer-Hammer QQ</small></div>
           </div>
         </div>
-        <div class="table-wrap">
-          <table>
+
+        <div class="dashboard-tables">
+          <div class="card">
+            <h3>PO</h3>
+            <table class="data-table">
+              <thead><tr><th>No</th><th>Tanggal</th><th>No PO</th><th>Action</th></tr></thead>
+              <tbody id="dashPOTable">
+                <!-- Dummy -->
+                <tr><td>1.</td><td>01-04-2023</td><td>PO-00012</td><td><button class="btn-sm blue">Lihat</button></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="card">
+            <h3>Stok</h3>
+            <table class="data-table">
+              <thead><tr><th>No</th><th>SKU</th><th>Jumlah</th></tr></thead>
+              <tbody id="dashStokTable">
+                <!-- Dummy -->
+                <tr><td>1.</td><td>JFX-MN18STD</td><td>1</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- PAGE: INPUT STOK -->
+      <div id="page-inputStok" class="page-view hidden">
+        <h2 class="page-title">Input Stok <br><small>Rabu, 03 Mei 2023</small></h2>
+        
+        <div class="input-stok-header">
+          <div class="form-inline">
+            <label>SKU</label>
+            <input type="text" id="inputSkuCepat" placeholder="Masukkan SKU">
+          </div>
+          <div class="form-inline">
+            <label>Jumlah</label>
+            <input type="number" id="inputJmlCepat" placeholder="Masukkan Jumlah">
+          </div>
+          <div class="form-inline">
+            <label>Harga</label>
+            <input type="number" id="inputHargaCepat" placeholder="Masukkan harga">
+          </div>
+          <button class="btn-primary" onclick="tambahKeTabelSementara()">Tambah</button>
+        </div>
+
+        <div class="card mt-20">
+          <table class="data-table">
             <thead>
-              <tr>
-                <th>Tanggal</th>
-                <th>Nama Produk</th>
-                <th>Tipe</th>
-                <th>Jumlah</th>
-                <th>Keterangan</th>
-                <th>User</th>
-                <th class="text-right">Aksi</th>
-              </tr>
+              <tr><th>SKU</th><th>Nama</th><th>Merk</th><th>Ukuran</th><th>Jenis</th><th>Rincian</th><th>Jumlah</th><th>Harga Jual</th><th>Action</th></tr>
             </thead>
-            <tbody id="tableBody"></tbody>
+            <tbody id="tempStokTable">
+              <!-- Baris akan diisi via JS -->
+            </tbody>
           </table>
-        </div>
-        <div id="emptyState" class="empty-state hidden">Belum ada data transaksi.</div>
-        <div id="loadingState" class="loading hidden">Memuat data...</div>
-      </div>
-    </div>
-
-    <!-- PAGE: REPORT -->
-    <div id="page-report" class="hidden">
-      <div class="card" style="margin-bottom: 24px;">
-        <div class="card-header"><h3>Filter Laporan</h3></div>
-        <div class="report-filters">
-          <div class="field">
-            <label>Dari Tanggal</label>
-            <input type="date" id="reportStart">
+          <div class="table-footer">
+            <button class="btn-primary" onclick="simpanStokMassal()">Simpan</button>
           </div>
-          <div class="field">
-            <label>Sampai Tanggal</label>
-            <input type="date" id="reportEnd">
-          </div>
-          <div class="field">
-            <label>Kategori</label>
-            <select id="reportKategori"><option value="">Semua Kategori</option></select>
-          </div>
-          <button class="btn btn-primary" style="width:auto;" onclick="generateReport()">Tampilkan Laporan</button>
         </div>
       </div>
 
-      <div class="stats">
-        <div class="stat-card">
-          <div class="stat-label">Total Masuk</div>
-          <div class="stat-value" id="repMasuk">0</div>
+      <!-- PAGE: MASTER UKURAN (Contoh Halaman Master) -->
+      <div id="page-masterUkuran" class="page-view hidden">
+        <div class="page-header-flex">
+          <h2 class="page-title">Ukuran</h2>
+          <button class="btn-primary" onclick="openModalMaster()"><i class="fa-solid fa-plus"></i> Tambah Ukuran</button>
         </div>
-        <div class="stat-card">
-          <div class="stat-label">Total Keluar</div>
-          <div class="stat-value" id="repKeluar">0</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Nilai Masuk</div>
-          <div class="stat-value" id="repNilaiMasuk">Rp 0</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Nilai Keluar</div>
-          <div class="stat-value" id="repNilaiKeluar">Rp 0</div>
-        </div>
-      </div>
-
-      <div class="card table-card">
-        <div class="card-header"><h3>Detail Transaksi Periode</h3></div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Tanggal</th>
-                <th>Nama Produk</th>
-                <th>Kategori</th>
-                <th>Tipe</th>
-                <th>Jumlah</th>
-                <th>Harga Modal</th>
-                <th>Total Nilai</th>
-              </tr>
-            </thead>
-            <tbody id="reportTableBody"></tbody>
+        <div class="card mt-20">
+          <table class="data-table">
+            <thead><tr><th>No</th><th>Ukuran</th><th>Action</th></tr></thead>
+            <tbody id="tableMasterUkuran">
+              <!-- Diisi via JS -->
+            </tbody>
           </table>
         </div>
       </div>
+
     </div>
   </main>
 </div>
 
-<!-- MODALS -->
-<div id="categoryModal" class="modal-backdrop hidden">
-  <div class="modal">
-    <div class="modal-header"><h3>Kelola Kategori</h3><button class="btn-close" onclick="closeCategoryModal()">×</button></div>
-    <div class="field">
-      <label>Tambah Kategori Baru</label>
-      <div class="category-row">
-        <input type="text" id="newCategoryInput" placeholder="Nama kategori">
-        <button class="btn btn-primary" onclick="addCategory()">Tambah</button>
-      </div>
+<!-- MODAL DETAIL PRODUK -->
+<div id="modalProduk" class="modal-overlay hidden">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Detail Produk</h3>
+      <button class="close-btn" onclick="closeModal('modalProduk')">&times;</button>
     </div>
-    <div class="list" id="categoryList"></div>
+    <form id="formProduk">
+      <div class="modal-body">
+        <div class="form-group"><label>SKU</label><input type="text" id="prodSku" required></div>
+        <div class="form-group"><label>Nama</label><input type="text" id="prodNama" required></div>
+        <div class="form-group"><label>Merk</label><input type="text" id="prodMerk"></div>
+        <div class="form-group"><label>Ukuran</label><input type="text" id="prodUkuran"></div>
+        <div class="form-group"><label>Jenis</label><input type="text" id="prodJenis"></div>
+        <div class="form-group"><label>Jumlah</label><input type="number" id="prodJumlah" value="1"></div>
+        <div class="form-group"><label>Harga Jual</label><input type="number" id="prodHarga"></div>
+        <div class="form-group"><label>Detail</label><textarea id="prodDetail" rows="3"></textarea></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" onclick="closeModal('modalProduk')">Batal</button>
+        <button type="submit" class="btn-primary">Tambah Stok</button>
+      </div>
+    </form>
   </div>
 </div>
 
-<div id="productModal" class="modal-backdrop hidden">
-  <div class="modal" style="max-width: 850px;">
-    <div class="modal-header"><h3>Kelola Produk</h3><button class="btn-close" onclick="closeProductModal()">×</button></div>
-    <div style="padding: 20px 24px;">
-      <button class="btn btn-primary" style="width:auto; margin-bottom: 16px;" onclick="showAddProductForm()">+ Tambah Produk Baru</button>
-      <form id="productForm" class="hidden" style="background: #f9fafb; padding: 16px; border-radius: 8px; border: 1px solid #e5e7eb; margin-bottom: 16px;">
-        <input type="hidden" id="prodId">
-        <div class="form-row-2">
-          <div class="field"><label>Nama Produk</label><input type="text" id="prodNama" required></div>
-          <div class="field">
-            <label>Kategori</label>
-            <select id="prodKategori" required></select>
-          </div>
-        </div>
-        <div class="form-row-2">
-          <div class="field"><label>Batas Min. Stok</label><input type="number" id="prodMin" required min="0" value="5"></div>
-          <div class="field"><label>Harga Modal (Rp)</label><input type="number" id="prodHarga" required min="0" value="0"></div>
-        </div>
-        <div class="form-actions">
-          <button type="submit" class="btn btn-primary" style="width:auto;">Simpan Produk</button>
-          <button type="button" class="btn btn-outline" onclick="hideProductForm()">Batal</button>
-        </div>
-      </form>
-      <div class="table-wrap" style="max-height: 400px;">
-        <table>
-          <thead>
-            <tr>
-              <th>Nama Produk</th>
-              <th>Kategori</th>
-              <th>Stok</th>
-              <th>Min. Stok</th>
-              <th>Harga Modal</th>
-              <th class="text-right">Aksi</th>
-            </tr>
-          </thead>
-          <tbody id="productTableBody"></tbody>
-        </table>
-      </div>
+<!-- MODAL MASTER DATA -->
+<div id="modalMaster" class="modal-overlay hidden">
+  <div class="modal-content" style="max-width: 400px;">
+    <div class="modal-header">
+      <h3>Tambah Data</h3>
+      <button class="close-btn" onclick="closeModal('modalMaster')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group"><label>Nama</label><input type="text" id="masterNama"></div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn-secondary" onclick="closeModal('modalMaster')">Batal</button>
+      <button type="button" class="btn-primary" onclick="simpanMaster()">Simpan</button>
     </div>
   </div>
 </div>
 
-<div id="importModal" class="modal-backdrop hidden">
-  <div class="modal" style="max-width: 850px;">
-    <div class="modal-header"><h3>Impor Produk dari CSV</h3><button class="btn-close" onclick="closeImportModal()">×</button></div>
-    <div style="padding: 20px 24px;">
-      <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
-        Format header kolom: <b>Nama Produk, Kategori, Stok Awal, Min Stok, Harga Modal</b>.
-      </p>
-      <input type="file" id="csvFileInput" accept=".csv" style="margin-bottom: 16px;">
-      <div id="importPreview" class="hidden">
-        <h4 style="margin-bottom: 8px;">Preview & Validasi</h4>
-        <div class="table-wrap" style="max-height: 250px; margin-bottom: 16px;">
-          <table>
-            <thead>
-              <tr>
-                <th>Nama</th>
-                <th>Kategori</th>
-                <th>Stok Awal</th>
-                <th>Min Stok</th>
-                <th>Harga</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody id="importTableBody"></tbody>
-          </table>
-        </div>
-        <button class="btn btn-primary" onclick="processImport()">Proses Impor</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div id="stockCardModal" class="modal-backdrop hidden">
-  <div class="modal" style="max-width: 850px;">
-    <div class="modal-header"><h3 id="stockCardTitle">Kartu Stok</h3><button class="btn-close" onclick="closeStockCardModal()">×</button></div>
-    <div style="padding: 20px 24px;">
-      <div class="table-wrap" style="max-height: 400px;">
-        <table>
-          <thead>
-            <tr>
-              <th>Tanggal</th>
-              <th>Tipe</th>
-              <th>Masuk</th>
-              <th>Keluar</th>
-              <th>Saldo Akhir</th>
-              <th>Keterangan / Alasan</th>
-              <th>User</th>
-            </tr>
-          </thead>
-          <tbody id="stockCardBody"></tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-</div>
-
-<script>
-  // Script buka-tutup sidebar untuk Mobile
-  const layout = document.querySelector('.layout');
-  const overlay = document.getElementById('sidebarOverlay');
-  
-  document.getElementById('menuToggle').addEventListener('click', () => {
-    layout.classList.add('sidebar-open');
-    setTimeout(() => { window.dispatchEvent(new Event('resize')); }, 350);
-  });
-
-  overlay.addEventListener('click', () => {
-    layout.classList.remove('sidebar-open');
-    setTimeout(() => { window.dispatchEvent(new Event('resize')); }, 350);
-  });
-
-  function closeSidebarMobile() {
-    if (window.innerWidth <= 768) {
-      layout.classList.remove('sidebar-open');
-    }
-  }
-</script>
 <script type="module" src="js/app.js"></script>
 </body>
 </html>
