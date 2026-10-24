@@ -268,7 +268,6 @@ document.getElementById('formSettings').addEventListener('submit', async (e) => 
     document.getElementById('inputLogo').value = '';
     document.getElementById('inputAvatar').value = '';
     
-    // Update preview jika baru upload
     if(data.logo_url) {
       document.getElementById('previewLogo').src = data.logo_url;
       document.getElementById('previewLogo').style.display = 'block';
@@ -544,3 +543,109 @@ async function loadHistory() {
     </tr>
   `).join('');
 }
+
+/* =========================================
+   EXPORT HISTORY TO EXCEL (DENGAN STYLING)
+========================================= */
+window.exportHistoryToExcel = async () => {
+  const { data: ins } = await supabase.from('purchase_orders').select('*, po_items(jumlah, products(nama))');
+  const { data: outs } = await supabase.from('stock_out').select('*, products(nama)');
+  
+  let history = [];
+  if (ins) ins.forEach(po => po.po_items.forEach(item => history.push({ tanggal: po.tanggal, tipe: 'Masuk (PO)', produk: item.products?.nama, jumlah: item.jumlah, ket: po.no_po, created: po.created_at })));
+  if (outs) outs.forEach(o => history.push({ tanggal: o.tanggal, tipe: 'Keluar', produk: o.products?.nama, jumlah: o.jumlah, ket: o.keterangan, created: o.created_at }));
+
+  history.sort((a, b) => new Date(b.created) - new Date(a.created));
+
+  if (history.length === 0) return alert('Belum ada data history untuk diexport!');
+
+  const btn = document.querySelector('#page-history .btn-primary');
+  const originalText = btn.innerHTML;
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Memproses Excel...';
+  btn.disabled = true;
+
+  try {
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('History Transaksi');
+
+    worksheet.columns = [
+      { header: 'No', key: 'no', width: 8 },
+      { header: 'Tanggal', key: 'tanggal', width: 15 },
+      { header: 'Tipe Transaksi', key: 'tipe', width: 18 },
+      { header: 'Nama Produk', key: 'produk', width: 30 },
+      { header: 'Jumlah (Qty)', key: 'jumlah', width: 15 },
+      { header: 'Keterangan / No PO', key: 'ket', width: 30 }
+    ];
+
+    const headerRow = worksheet.getRow(1);
+    headerRow.height = 25;
+    headerRow.eachCell((cell) => {
+      cell.font = { name: 'Arial', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF111827' } };
+      cell.alignment = { vertical: 'middle', horizontal: 'center' };
+      cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
+    });
+
+    history.forEach((item, index) => {
+      const row = worksheet.addRow({
+        no: index + 1,
+        tanggal: new Date(item.tanggal).toLocaleDateString('id-ID'),
+        tipe: item.tipe,
+        produk: item.produk || '-',
+        jumlah: item.jumlah,
+        ket: item.ket || '-'
+      });
+
+      row.eachCell((cell) => {
+        cell.font = { name: 'Arial', size: 11 };
+        cell.border = {
+          top: { style: 'thin', color: { argb: 'FFE5E7EB' } },
+          left: { style: 'thin', color: { argb: 'FFE5E7EB' } },
+          bottom: { style: 'thin', color: { argb: 'FFE5E7EB' } },
+          right: { style: 'thin', color: { argb: 'FFE5E7EB' } }
+        };
+        cell.alignment = { vertical: 'middle', horizontal: 'left' };
+      });
+
+      if (index % 2 === 1) {
+        row.eachCell((cell) => {
+          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF9FAFB' } };
+        });
+      }
+
+      const tipeCell = row.getCell('tipe');
+      const jmlCell = row.getCell('jumlah');
+      
+      tipeCell.alignment = { vertical: 'middle', horizontal: 'center' };
+      jmlCell.alignment = { vertical: 'middle', horizontal: 'center' };
+
+      if (item.tipe.includes('Masuk')) {
+        tipeCell.font = { name: 'Arial', size: 11, bold: true, color: { argb: 'FF16A34A' } };
+        tipeCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFDCFCE7' } };
+        jmlCell.font = { name: 'Arial', size: 11, bold: true, color: { argb: 'FF16A34A' } };
+      } else {
+        tipeCell.font = { name: 'Arial', size: 11, bold: true, color: { argb: 'FFDC2626' } };
+        tipeCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFEE2E2' } };
+        jmlCell.font = { name: 'Arial', size: 11, bold: true, color: { argb: 'FFDC2626' } };
+      }
+    });
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = window.URL.createObjectURL(blob);
+    
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `History_Inventory_${new Date().toISOString().slice(0, 10)}.xlsx`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+
+  } catch (error) {
+    alert('Gagal membuat Excel: ' + error.message);
+  } finally {
+    btn.innerHTML = originalText;
+    btn.disabled = false;
+  }
+};
