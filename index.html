@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Enterprise Inventory System</title>
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -40,7 +40,6 @@
 <!-- APP -->
 <div id="appScreen" class="app-layout hidden">
   
-  <!-- OVERLAY GELAP UNTUK MOBILE -->
   <div id="sidebarOverlay" class="sidebar-overlay" onclick="toggleMobileSidebar()"></div>
 
   <!-- SIDEBAR -->
@@ -83,7 +82,6 @@
   <main class="main-content">
     <header class="topbar">
       <div class="topbar-left">
-        <!-- TOMBOL HAMBURGER (Hanya muncul di Mobile/Tablet) -->
         <button class="hamburger" onclick="toggleMobileSidebar()"><i class="fa-solid fa-bars"></i></button>
         <div class="search-bar">
           <i class="fa-solid fa-magnifying-glass"></i>
@@ -91,7 +89,19 @@
         </div>
       </div>
       <div class="topbar-right">
-        <div class="user-profile"><span id="userNameDisplay">Admin</span><div class="avatar"></div></div>
+        <!-- DROPDOWN PROFIL -->
+        <div class="profile-dropdown-container">
+          <div class="user-profile" onclick="toggleProfileMenu(event)">
+            <span id="userNameDisplay">Admin</span>
+            <div class="avatar"></div>
+            <i class="fa-solid fa-chevron-down" style="font-size: 10px; margin-left: 4px; color: #6b7280;"></i>
+          </div>
+          <div class="dropdown-menu hidden" id="profileDropdown">
+            <a href="#" class="dropdown-item" onclick="logout(); return false;">
+              <i class="fa-solid fa-arrow-right-from-bracket"></i> Logout
+            </a>
+          </div>
+        </div>
       </div>
     </header>
 
