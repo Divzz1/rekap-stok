@@ -9,17 +9,12 @@ let tempStokData = [];
 let masterTipeAktif = '';
 
 /* =========================================
-   UI NAVIGATION & UTILS
+   UI & NAVIGATION
 ========================================= */
 window.toggleAuth = (type) => {
   document.getElementById('authError').classList.add('hidden');
-  if (type === 'login') {
-    document.getElementById('loginBox').classList.remove('hidden');
-    document.getElementById('registerBox').classList.add('hidden');
-  } else {
-    document.getElementById('loginBox').classList.add('hidden');
-    document.getElementById('registerBox').classList.remove('hidden');
-  }
+  document.getElementById('loginBox').classList.toggle('hidden', type === 'register');
+  document.getElementById('registerBox').classList.toggle('hidden', type === 'login');
 };
 
 window.showPage = (pageId, el) => {
@@ -28,19 +23,19 @@ window.showPage = (pageId, el) => {
   if (target) {
     target.classList.remove('hidden');
     target.style.animation = 'none';
-    target.offsetHeight; /* trigger reflow */
+    target.offsetHeight; 
     target.style.animation = 'fadeIn 0.4s ease';
   }
   
   document.querySelectorAll('.menu-item, .submenu a').forEach(a => a.classList.remove('active'));
   if (el) el.classList.add('active');
 
-  // Load data sesuai halaman
   if (pageId === 'dashboard') loadDashboard();
   if (pageId.startsWith('master')) loadMasterData(pageId.replace('master', '').toLowerCase());
   if (pageId === 'masterProduk') loadProducts();
   if (pageId === 'stok') loadStokPage();
   if (pageId === 'history') loadHistory();
+  if (pageId === 'inputKeluar') loadDropdownProduk();
 };
 
 window.toggleSubmenu = (element) => {
@@ -52,47 +47,33 @@ window.toggleSubmenu = (element) => {
   }
 };
 
-window.closeModal = (modalId) => {
-  document.getElementById(modalId).classList.add('hidden');
-};
+window.closeModal = (modalId) => document.getElementById(modalId).classList.add('hidden');
 
 /* =========================================
-   AUTHENTICATION
+   AUTH
 ========================================= */
 document.getElementById('loginForm').addEventListener('submit', async (e) => {
   e.preventDefault();
-  const email = document.getElementById('loginEmail').value;
-  const password = document.getElementById('loginPass').value;
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-  
-  if (error) {
-    const err = document.getElementById('authError');
-    err.textContent = error.message; err.classList.remove('hidden');
-  } else {
-    initApp(data.user);
-  }
+  const { data, error } = await supabase.auth.signInWithPassword({ 
+    email: document.getElementById('loginEmail').value, 
+    password: document.getElementById('loginPass').value 
+  });
+  if (error) { document.getElementById('authError').textContent = error.message; document.getElementById('authError').classList.remove('hidden'); }
+  else initApp(data.user);
 });
 
 document.getElementById('registerForm').addEventListener('submit', async (e) => {
   e.preventDefault();
-  const nama = document.getElementById('regNama').value;
-  const email = document.getElementById('regEmail').value;
-  const password = document.getElementById('regPass').value;
-  const { data, error } = await supabase.auth.signUp({ email, password, options: { data: { nama } } });
-  
-  if (error) {
-    const err = document.getElementById('authError');
-    err.textContent = error.message; err.classList.remove('hidden');
-  } else {
-    alert('Registrasi berhasil! Silakan login (atau cek email jika verifikasi aktif).');
-    toggleAuth('login');
-  }
+  const { error } = await supabase.auth.signUp({ 
+    email: document.getElementById('regEmail').value, 
+    password: document.getElementById('regPass').value,
+    options: { data: { nama: document.getElementById('regNama').value } }
+  });
+  if (error) { document.getElementById('authError').textContent = error.message; document.getElementById('authError').classList.remove('hidden'); }
+  else { alert('Registrasi berhasil! Silakan login.'); toggleAuth('login'); }
 });
 
-window.logout = async () => {
-  await supabase.auth.signOut();
-  location.reload();
-};
+window.logout = async () => { await supabase.auth.signOut(); location.reload(); };
 
 function initApp(user) {
   currentUser = user;
@@ -103,44 +84,39 @@ function initApp(user) {
   const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
   document.getElementById('currentDate').textContent = new Date().toLocaleDateString('id-ID', options);
   
-  // Buka submenu pertama secara default
   const firstGroup = document.querySelector('.menu-group');
   if(firstGroup) toggleSubmenu(firstGroup.querySelector('.menu-item'));
   
   loadDashboard();
 }
 
-supabase.auth.getSession().then(({ data: { session } }) => {
-  if (session) initApp(session.user);
-});
+supabase.auth.getSession().then(({ data: { session } }) => { if (session) initApp(session.user); });
 
 /* =========================================
-   DASHBOARD
+   DASHBOARD (NILAI ASET & LOW STOCK)
 ========================================= */
 async function loadDashboard() {
   const { data: products } = await supabase.from('products').select('*');
   const { data: pos } = await supabase.from('purchase_orders').select('*').order('created_at', { ascending: false }).limit(5);
+  const { data: outs } = await supabase.from('stock_out').select('*, products(nama)').order('created_at', { ascending: false }).limit(5);
   
   if (products) {
     document.getElementById('statTotalProduk').textContent = products.length;
     document.getElementById('statLowStok').textContent = products.filter(p => p.stok < 10).length;
+    
+    // Hitung Total Nilai Aset
+    let nilaiAset = 0;
+    products.forEach(p => { nilaiAset += (p.stok * p.harga_jual); });
+    document.getElementById('statNilaiAset').textContent = 'Rp ' + nilaiAset.toLocaleString('id-ID');
   }
 
-  if (pos && pos.length > 0) {
-    document.getElementById('dashPOTable').innerHTML = pos.map(po => `
-      <tr><td>${new Date(po.tanggal).toLocaleDateString('id-ID')}</td><td>${po.no_po}</td><td>${po.total_item} Item</td></tr>
-    `).join('');
-  }
-
-  if (products && products.length > 0) {
-    document.getElementById('dashStokTable').innerHTML = products.slice(0,5).map(p => `
-      <tr><td>${p.sku}</td><td>${p.nama}</td><td>${p.stok}</td></tr>
-    `).join('');
-  }
+  if (pos) document.getElementById('dashPOTable').innerHTML = pos.map(po => `<tr><td>${new Date(po.tanggal).toLocaleDateString('id-ID')}</td><td>${po.no_po}</td><td>${po.total_item} Item</td></tr>`).join('') || '<tr><td colspan="3" align="center">Belum ada data</td></tr>';
+  
+  if (outs) document.getElementById('dashOutTable').innerHTML = outs.map(o => `<tr><td>${new Date(o.tanggal).toLocaleDateString('id-ID')}</td><td>${o.products?.nama || '-'}</td><td>${o.jumlah}</td></tr>`).join('') || '<tr><td colspan="3" align="center">Belum ada data</td></tr>';
 }
 
 /* =========================================
-   INPUT STOK (Dengan Database Fetch)
+   BARANG MASUK (PO)
 ========================================= */
 window.tambahKeTabelSementara = async () => {
   const sku = document.getElementById('inputSkuCepat').value;
@@ -150,8 +126,7 @@ window.tambahKeTabelSementara = async () => {
   if (!sku || !jml || !harga) return alert('Isi SKU, Jumlah, dan Harga dengan benar.');
 
   const { data: prod, error } = await supabase.from('products').select('*').eq('sku', sku).single();
-
-  if (error || !prod) return alert('SKU tidak ditemukan di database Master Produk!');
+  if (error || !prod) return alert('SKU tidak ditemukan di database!');
 
   tempStokData.push({ ...prod, jumlahBeli: jml, hargaBeli: harga });
   renderTempStok();
@@ -164,15 +139,12 @@ window.tambahKeTabelSementara = async () => {
 function renderTempStok() {
   const tbody = document.getElementById('tempStokTable');
   if (tempStokData.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding: 20px;">Belum ada barang di daftar.</td></tr>';
-    return;
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 20px;">Belum ada barang.</td></tr>'; return;
   }
   tbody.innerHTML = tempStokData.map((item, index) => `
     <tr>
-      <td><a href="#" style="color: #2563eb; text-decoration: underline;" onclick="bukaDetailProduk('${item.sku}'); return false;">${item.sku}</a></td>
-      <td>${item.nama}</td><td>${item.merk || '-'}</td><td>${item.ukuran || '-'}</td><td>${item.jenis || '-'}</td>
-      <td>${item.jumlahBeli}</td>
-      <td>Rp ${item.hargaBeli.toLocaleString('id-ID')}</td>
+      <td>${item.sku}</td><td>${item.nama}</td><td>${item.lokasi || '-'}</td>
+      <td>${item.jumlahBeli}</td><td>Rp ${item.hargaBeli.toLocaleString('id-ID')}</td>
       <td><button class="btn-sm red" onclick="hapusTempStok(${index})"><i class="fa-solid fa-trash"></i></button></td>
     </tr>
   `).join('');
@@ -182,31 +154,62 @@ window.hapusTempStok = (index) => { tempStokData.splice(index, 1); renderTempSto
 
 window.simpanStokMassal = async () => {
   if (tempStokData.length === 0) return alert('Belum ada data.');
-  
   const noPo = 'PO-' + Date.now().toString().slice(-6);
   const today = new Date().toISOString().split('T')[0];
 
-  const { data: po, error: poErr } = await supabase.from('purchase_orders').insert({
-    no_po: noPo, tanggal: today, total_item: tempStokData.length
-  }).select().single();
-
+  const { data: po, error: poErr } = await supabase.from('purchase_orders').insert({ no_po: noPo, tanggal: today, total_item: tempStokData.length }).select().single();
   if (poErr) return alert('Gagal membuat PO: ' + poErr.message);
 
   for (let item of tempStokData) {
     await supabase.from('po_items').insert({ po_id: po.id, product_id: item.id, jumlah: item.jumlahBeli, harga: item.hargaBeli });
-    // Update stok produk
-    const newStok = item.stok + item.jumlahBeli;
-    await supabase.from('products').update({ stok: newStok }).eq('id', item.id);
+    await supabase.from('products').update({ stok: item.stok + item.jumlahBeli }).eq('id', item.id);
   }
-
-  alert('Stok berhasil disimpan!');
-  tempStokData = [];
-  renderTempStok();
-  loadDashboard();
+  alert('Barang masuk berhasil disimpan!');
+  tempStokData = []; renderTempStok(); loadDashboard();
 };
 
 /* =========================================
-   MASTER DATA (Merk, Jenis, Ukuran)
+   BARANG KELUAR (STOCK OUT)
+========================================= */
+async function loadDropdownProduk() {
+  const select = document.getElementById('outProdukId');
+  const { data } = await supabase.from('products').select('id, sku, nama, stok').gt('stok', 0).order('nama');
+  
+  if (!data || data.length === 0) {
+    select.innerHTML = '<option value="">Tidak ada stok tersedia</option>'; return;
+  }
+  select.innerHTML = data.map(p => `<option value="${p.id}">${p.sku} - ${p.nama} (Sisa: ${p.stok})</option>`).join('');
+}
+
+document.getElementById('formKeluar').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const prodId = document.getElementById('outProdukId').value;
+  const jml = parseInt(document.getElementById('outJumlah').value);
+  
+  const { data: prod } = await supabase.from('products').select('stok').eq('id', prodId).single();
+  if (prod.stok < jml) return alert('Gagal: Stok tidak mencukupi! Sisa stok saat ini: ' + prod.stok);
+
+  const payload = {
+    user_id: currentUser.id,
+    product_id: prodId,
+    jumlah: jml,
+    tanggal: document.getElementById('outTanggal').value,
+    keterangan: document.getElementById('outKet').value
+  };
+
+  const { error } = await supabase.from('stock_out').insert(payload);
+  if (error) return alert('Gagal: ' + error.message);
+
+  // Update stok produk (kurangi)
+  await supabase.from('products').update({ stok: prod.stok - jml }).eq('id', prodId);
+  
+  alert('Barang keluar berhasil dicatat!');
+  e.target.reset();
+  loadDashboard();
+});
+
+/* =========================================
+   MASTER DATA & PRODUK
 ========================================= */
 window.openModalMaster = (tipe) => {
   masterTipeAktif = tipe;
@@ -218,12 +221,9 @@ window.openModalMaster = (tipe) => {
 window.simpanMaster = async () => {
   const nama = document.getElementById('masterNama').value;
   if (!nama) return alert('Nama tidak boleh kosong');
-  
   const { error } = await supabase.from('master_data').insert({ tipe: masterTipeAktif, nama });
   if (error) return alert(error.message);
-  
-  closeModal('modalMaster');
-  loadMasterData(masterTipeAktif);
+  closeModal('modalMaster'); loadMasterData(masterTipeAktif);
 };
 
 async function loadMasterData(tipe) {
@@ -232,9 +232,8 @@ async function loadMasterData(tipe) {
   if (!tbody) return;
 
   const { data } = await supabase.from('master_data').select('*').eq('tipe', tipe).order('nama');
-  
   if (!data || data.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="3" style="text-align:center;">Belum ada data ${tipe}.</td></tr>`; return;
+    tbody.innerHTML = `<tr><td colspan="3" style="text-align:center;">Belum ada data.</td></tr>`; return;
   }
   tbody.innerHTML = data.map((d, i) => `
     <tr><td>${i+1}.</td><td>${d.nama}</td>
@@ -248,15 +247,8 @@ window.hapusMaster = async (id, tipe) => {
   loadMasterData(tipe);
 };
 
-/* =========================================
-   PRODUK
-========================================= */
-window.bukaDetailProduk = (sku = '') => {
+window.bukaDetailProduk = () => {
   document.getElementById('formProduk').reset();
-  if (sku) {
-    // Ambil data jika edit, atau hanya view (opsional, dibuat simple dulu)
-    document.getElementById('prodSku').value = sku;
-  }
   document.getElementById('modalProduk').classList.remove('hidden');
 };
 
@@ -266,31 +258,30 @@ document.getElementById('formProduk').addEventListener('submit', async (e) => {
     sku: document.getElementById('prodSku').value,
     nama: document.getElementById('prodNama').value,
     merk: document.getElementById('prodMerk').value,
-    ukuran: document.getElementById('prodUkuran').value,
+    lokasi: document.getElementById('prodLokasi').value,
     jenis: document.getElementById('prodJenis').value,
-    stok: parseInt(document.getElementById('prodJumlah').value),
+    ukuran: document.getElementById('prodUkuran').value,
+    status: document.getElementById('prodStatus').value,
     harga_jual: parseFloat(document.getElementById('prodHarga').value),
+    stok: 0, // Stok awal 0, diisi lewat PO
     user_id: currentUser.id
   };
 
   const { error } = await supabase.from('products').insert(payload);
-  if (error) return alert('Gagal simpan produk: ' + error.message);
-
-  closeModal('modalProduk');
-  loadProducts();
+  if (error) return alert('Gagal simpan: ' + error.message);
+  closeModal('modalProduk'); loadProducts();
 });
 
 async function loadProducts() {
   const tbody = document.getElementById('tableMasterProduk');
   const { data } = await supabase.from('products').select('*').order('created_at', { ascending: false });
+  if (!data || data.length === 0) { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">Belum ada produk.</td></tr>'; return; }
   
-  if (!data || data.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">Belum ada produk.</td></tr>'; return;
-  }
   tbody.innerHTML = data.map(p => `
     <tr>
-      <td>${p.sku}</td><td>${p.nama}</td><td>${p.merk || '-'}</td><td>${p.ukuran || '-'}</td>
-      <td>${p.jenis || '-'}</td><td>${p.stok}</td><td>Rp ${p.harga_jual.toLocaleString('id-ID')}</td>
+      <td>${p.sku}</td><td>${p.nama}</td><td>${p.lokasi || '-'}</td>
+      <td><span class="badge ${p.status === 'Tersedia' ? 'success' : 'danger'}">${p.status}</span></td>
+      <td>${p.stok}</td><td>Rp ${p.harga_jual.toLocaleString('id-ID')}</td>
       <td><button class="btn-sm outline" onclick="hapusProduk(${p.id})">Hapus</button></td>
     </tr>
   `).join('');
@@ -303,26 +294,53 @@ window.hapusProduk = async (id) => {
 };
 
 /* =========================================
-   STOK & HISTORY PAGE
+   STOK & HISTORY
 ========================================= */
 async function loadStokPage() {
   const tbody = document.getElementById('tableStok');
-  const { data } = await supabase.from('products').select('sku, nama, stok').order('stok', { ascending: true });
-  
-  if (!data || data.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;">Belum ada stok.</td></tr>'; return;
-  }
-  tbody.innerHTML = data.map(p => `<tr><td>${p.sku}</td><td>${p.nama}</td><td><b>${p.stok}</b></td></tr>`).join('');
+  const { data } = await supabase.from('products').select('sku, nama, lokasi, stok').order('stok', { ascending: true });
+  if (!data || data.length === 0) { tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Belum ada stok.</td></tr>'; return; }
+  tbody.innerHTML = data.map(p => `<tr><td>${p.sku}</td><td>${p.nama}</td><td>${p.lokasi || '-'}</td><td><b>${p.stok}</b></td></tr>`).join('');
 }
 
 async function loadHistory() {
   const tbody = document.getElementById('tableHistory');
-  const { data } = await supabase.from('purchase_orders').select('*').order('created_at', { ascending: false });
   
-  if (!data || data.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;">Belum ada history.</td></tr>'; return;
+  // Ambil data masuk
+  const { data: ins } = await supabase.from('purchase_orders').select('*, po_items(jumlah, products(nama))');
+  // Ambil data keluar
+  const { data: outs } = await supabase.from('stock_out').select('*, products(nama)');
+  
+  let history = [];
+  
+  if (ins) {
+    ins.forEach(po => {
+      po.po_items.forEach(item => {
+        history.push({ tanggal: po.tanggal, tipe: 'Masuk (PO)', produk: item.products?.nama, jumlah: item.jumlah, ket: po.no_po, created: po.created_at });
+      });
+    });
   }
-  tbody.innerHTML = data.map(po => `
-    <tr><td>${new Date(po.tanggal).toLocaleDateString('id-ID')}</td><td>${po.no_po}</td><td>${po.total_item}</td></tr>
+  
+  if (outs) {
+    outs.forEach(o => {
+      history.push({ tanggal: o.tanggal, tipe: 'Keluar', produk: o.products?.nama, jumlah: o.jumlah, ket: o.keterangan, created: o.created_at });
+    });
+  }
+
+  // Urutkan berdasarkan tanggal terbaru
+  history.sort((a, b) => new Date(b.created) - new Date(a.created));
+
+  if (history.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Belum ada history.</td></tr>'; return;
+  }
+
+  tbody.innerHTML = history.map(h => `
+    <tr>
+      <td>${new Date(h.tanggal).toLocaleDateString('id-ID')}</td>
+      <td><span class="badge ${h.tipe.includes('Masuk') ? 'success' : 'warning'}">${h.tipe}</span></td>
+      <td>${h.produk || '-'}</td>
+      <td>${h.jumlah}</td>
+      <td>${h.ket || '-'}</td>
+    </tr>
   `).join('');
 }
