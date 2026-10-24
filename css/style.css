@@ -52,7 +52,7 @@ button { cursor: pointer; }
 .user-profile:hover { background: #e5e7eb; }
 .user-profile .avatar { width: 24px; height: 24px; border-radius: 50%; background: #9ca3af; flex-shrink: 0; }
 
-.content-area { padding: 24px; animation: fadeIn 0.4s ease; width: 100%; max-width: 100%; overflow-x: hidden; }
+.content-area { padding: 24px; animation: fadeIn 0.4s ease; width: 100%; max-width: 100%; overflow-x: hidden; flex: 1; }
 
 /* STATE SIDEBAR TERTUTUP (DESKTOP) */
 .app-layout.sidebar-closed .sidebar { transform: translateX(-100%); }
@@ -126,46 +126,57 @@ button { cursor: pointer; }
 
 /* ===== MODAL (FIX SCROLL) ===== */
 .modal-overlay { 
-  position: fixed; 
-  inset: 0; 
-  background: rgba(0,0,0,0.4); 
-  display: flex; 
-  z-index: 1000; 
-  opacity: 0; 
-  animation: fadeIn 0.3s forwards; 
-  padding: 20px; 
-  overflow-y: auto; /* KUNCI: Biar overlay bisa discroll */
+  position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: flex; z-index: 1000; opacity: 0; animation: fadeIn 0.3s forwards; padding: 20px; overflow-y: auto; 
 }
 
 .modal-content { 
-  background: white; 
-  width: 100%; 
-  max-width: 600px; 
-  border-radius: 12px; 
-  overflow: hidden; 
-  transform: scale(0.9); 
-  opacity: 0; 
-  animation: scaleUp 0.3s forwards; 
-  margin: auto; /* KUNCI: Biar tetap di tengah */
-  display: flex; 
-  flex-direction: column; 
+  background: white; width: 100%; max-width: 600px; border-radius: 12px; overflow: hidden; transform: scale(0.9); opacity: 0; animation: scaleUp 0.3s forwards; margin: auto; display: flex; flex-direction: column; 
 }
 
 .modal-header { padding: 16px 24px; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
 .close-btn { background: none; border: none; font-size: 24px; color: #6b7280; transition: 0.2s; }
 .close-btn:hover { color: #ef4444; transform: rotate(90deg); }
 
-.modal-body { 
-  padding: 24px; 
-  overflow-y: auto; 
-  max-height: 70vh; /* KUNCI: Body form yang discroll, header/footer tetap */
-}
+.modal-body { padding: 24px; overflow-y: auto; max-height: 70vh; }
 
 .modal-footer { padding: 16px 24px; border-top: 1px solid #e5e7eb; display: flex; justify-content: flex-end; gap: 12px; flex-shrink: 0; background: white; }
 
 .page-header-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
-
 .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 99; opacity: 0; transition: opacity 0.3s; }
+
+/* ====== FOOTER MODERN ====== */
+.app-footer {
+  background: #4f46e5; /* Warna Ungu Indigo */
+  color: white;
+  padding: 40px;
+  border-radius: 16px;
+  margin: 0 24px 24px 24px;
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 40px;
+  box-shadow: 0 10px 30px rgba(79, 70, 229, 0.2);
+}
+
+.footer-left { flex: 1; min-width: 280px; display: flex; flex-direction: column; justify-content: center; }
+.footer-brand { display: flex; align-items: center; gap: 10px; font-size: 22px; font-weight: 700; margin-bottom: 20px; letter-spacing: -0.5px; }
+.footer-brand i { font-size: 24px; }
+.footer-left p { font-size: 13px; color: #c7d2fe; margin-bottom: 8px; line-height: 1.5; }
+.footer-left a { color: white; text-decoration: none; font-weight: 600; }
+.footer-left a:hover { text-decoration: underline; }
+
+.footer-right { display: flex; flex-direction: column; align-items: flex-end; gap: 24px; justify-content: space-between; }
+.top-right-row { display: flex; align-items: center; gap: 24px; }
+.social-link { color: white; font-size: 22px; transition: 0.2s; }
+.social-link:hover { transform: translateY(-3px) scale(1.1); color: #c7d2fe; }
+
+.badges { display: flex; gap: 12px; }
+.badge-circle { width: 56px; height: 56px; border-radius: 50%; background: white; display: flex; align-items: center; justify-content: center; color: #4f46e5; font-size: 10px; font-weight: 700; text-align: center; line-height: 1.2; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+
+.footer-links { display: flex; gap: 48px; }
+.link-col { display: flex; flex-direction: column; gap: 12px; }
+.link-col a { color: #c7d2fe; font-size: 13px; text-decoration: none; transition: 0.2s; font-weight: 500; }
+.link-col a:hover { color: white; text-decoration: underline; }
 
 /* ===== KEYFRAMES ===== */
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
@@ -175,39 +186,36 @@ button { cursor: pointer; }
 /* ==========================================
    RESPONSIVE DESIGN (TABLET & MOBILE)
    ========================================== */
-
 @media (max-width: 1024px) {
   .dashboard-cards { grid-template-columns: repeat(2, 1fr); }
   .dashboard-tables { grid-template-columns: 1fr; }
-  
   .sidebar { transform: translateX(-100%); width: 280px; box-shadow: 4px 0 10px rgba(0,0,0,0.1); }
   .sidebar.open { transform: translateX(0); }
-  
   .main-content { margin-left: 0; width: 100%; }
   .app-layout.sidebar-closed .main-content { margin-left: 0; width: 100%; }
-  
   .sidebar-overlay.open { display: block; opacity: 1; }
+}
+
+@media (max-width: 900px) {
+  .app-footer { flex-direction: column; padding: 30px 20px; margin: 20px 16px 16px 16px; }
+  .footer-right { align-items: flex-start; width: 100%; }
+  .top-right-row { width: 100%; justify-content: space-between; flex-direction: row-reverse; }
+  .footer-links { width: 100%; flex-wrap: wrap; gap: 30px; }
 }
 
 @media (max-width: 768px) {
   .dashboard-cards { grid-template-columns: 1fr; }
-  
   .topbar { flex-direction: column; align-items: stretch; padding: 12px 16px; gap: 12px; }
   .topbar-left { width: 100%; justify-content: flex-start; }
   .search-bar { width: 100%; flex: 1; margin-left: 10px; }
   .topbar-right { justify-content: flex-end; }
-  
   .content-area { padding: 16px; }
-  
   .input-stok-header { flex-direction: column; align-items: stretch; }
   .form-inline { width: 100%; }
-  
   .page-header-flex { flex-direction: column; align-items: flex-start; gap: 12px; }
   .page-header-flex button { width: 100%; }
-  
   .table-footer { justify-content: stretch; }
   .table-footer button { width: 100%; }
-  
   .modal-footer { flex-direction: column; }
   .modal-footer button { width: 100%; }
 }
