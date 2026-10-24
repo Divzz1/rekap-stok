@@ -13,6 +13,18 @@ let chartInstance = null;
 /* =========================================
    UI & NAVIGATION 
 ========================================= */
+// FUNGSI BARU: Deteksi Desktop vs Mobile
+window.toggleSidebar = () => {
+  if (window.innerWidth > 1024) {
+    // Di Desktop: Gunakan class sidebar-closed pada layout
+    document.querySelector('.app-layout').classList.toggle('sidebar-closed');
+  } else {
+    // Di Mobile: Gunakan class open pada sidebar dan overlay
+    document.getElementById('sidebar').classList.toggle('open');
+    document.getElementById('sidebarOverlay').classList.toggle('open');
+  }
+};
+
 window.toggleProfileMenu = (event) => {
   event.stopPropagation();
   const dropdown = document.getElementById('profileDropdown');
@@ -29,11 +41,6 @@ document.addEventListener('click', (event) => {
   }
 });
 
-window.toggleMobileSidebar = () => {
-  document.getElementById('sidebar').classList.toggle('open');
-  document.getElementById('sidebarOverlay').classList.toggle('open');
-};
-
 window.toggleAuth = (type) => {
   document.getElementById('authError').classList.add('hidden');
   document.getElementById('loginBox').classList.toggle('hidden', type === 'register');
@@ -41,7 +48,8 @@ window.toggleAuth = (type) => {
 };
 
 window.showPage = (pageId, el) => {
-  if(window.innerWidth <= 1024) {
+  // Tutup sidebar otomatis HANYA di Mobile/Tablet saat menu diklik
+  if (window.innerWidth <= 1024) {
     document.getElementById('sidebar').classList.remove('open');
     document.getElementById('sidebarOverlay').classList.remove('open');
   }
@@ -95,7 +103,7 @@ window.filterTable = () => {
 };
 
 /* =========================================
-   AUTHENTICATION
+   AUTHENTICATION (Tidak Berubah)
 ========================================= */
 document.getElementById('loginForm').addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -142,7 +150,7 @@ function initApp(user) {
 supabase.auth.getSession().then(({ data: { session } }) => { if (session) initApp(session.user); });
 
 /* =========================================
-   DASHBOARD & CHART
+   LOGIKA DATA (Tidak Berubah)
 ========================================= */
 async function loadDashboard() {
   const { data: products } = await supabase.from('products').select('*').order('nama').limit(5);
@@ -184,9 +192,6 @@ async function loadDashboard() {
   `).join('') || '<tr><td colspan="4" align="center">Belum ada aktivitas</td></tr>';
 }
 
-/* =========================================
-   BARANG MASUK (PO)
-========================================= */
 window.tambahKeTabelSementara = async () => {
   const sku = document.getElementById('inputSkuCepat').value;
   const jml = parseInt(document.getElementById('inputJmlCepat').value);
@@ -237,9 +242,6 @@ window.simpanStokMassal = async () => {
   tempStokData = []; renderTempStok(); loadDashboard();
 };
 
-/* =========================================
-   BARANG KELUAR
-========================================= */
 async function loadDropdownProduk() {
   const select = document.getElementById('outProdukId');
   const { data } = await supabase.from('products').select('id, sku, nama, stok').gt('stok', 0).order('nama');
@@ -265,9 +267,6 @@ document.getElementById('formKeluar').addEventListener('submit', async (e) => {
   e.target.reset(); loadDashboard();
 });
 
-/* =========================================
-   MASTER DATA (Bisa Edit & Hapus)
-========================================= */
 window.openModalMaster = (tipe) => {
   masterTipeAktif = tipe;
   document.getElementById('modalMasterTitle').textContent = 'Tambah ' + tipe.charAt(0).toUpperCase() + tipe.slice(1);
@@ -303,9 +302,6 @@ window.hapusMaster = async (id, tipe) => {
   loadMasterData(tipe);
 };
 
-/* =========================================
-   PRODUK (Bisa Tambah, Edit, Hapus)
-========================================= */
 window.bukaDetailProduk = (id = null) => {
   isEditingProduk = id !== null;
   document.getElementById('formProduk').reset();
@@ -383,9 +379,6 @@ window.hapusProduk = async (id) => {
   loadProducts(); loadDashboard();
 };
 
-/* =========================================
-   STOK & HISTORY
-========================================= */
 async function loadStokPage() {
   const tbody = document.getElementById('tableStok');
   const { data } = await supabase.from('products').select('sku, nama, lokasi, stok').order('stok', { ascending: true });
