@@ -1,4 +1,5 @@
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
 /* ============================================================
    ⚠️ GANTI DENGAN KREDENSIAL SUPABASE ANDA
    ============================================================ */
@@ -139,11 +140,21 @@ async function initApp(user) {
   document.getElementById('authScreen').classList.add('hidden');
   document.getElementById('appScreen').classList.remove('hidden');
   
-  // Set Tahun Otomatis di Footer
   document.getElementById('year').textContent = new Date().getFullYear();
   
-  // Load profil dari database
-  const { data } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+  // Cek apakah profil ada. Jika tidak, buatkan otomatis (Upsert)
+  let { data, error } = await supabase.from('profiles').select('*').eq('id', user.id).maybeSingle();
+  
+  if (!data) {
+    const defaultNama = user.email.split('@')[0];
+    const { data: newData } = await supabase.from('profiles').upsert({ 
+      id: user.id, 
+      nama: defaultNama, 
+      nama_perusahaan: 'Inventory' 
+    }).select().single();
+    data = newData;
+  }
+
   if (data) {
     document.getElementById('userNameDisplay').textContent = data.nama || user.email.split('@')[0];
     if (data.nama_perusahaan) {
@@ -152,8 +163,6 @@ async function initApp(user) {
       const footerLogo = document.getElementById('footerBrandLogoText');
       if(footerLogo) footerLogo.textContent = data.nama_perusahaan;
     }
-  } else {
-    document.getElementById('userNameDisplay').textContent = user.email.split('@')[0];
   }
   
   const firstGroup = document.querySelector('.menu-group');
@@ -165,7 +174,7 @@ async function initApp(user) {
 supabase.auth.getSession().then(({ data: { session } }) => { if (session) initApp(session.user); });
 
 /* =========================================
-   SETTINGS
+   SETTINGS (FIXED: PERMANEN & SINKRON)
 ========================================= */
 async function loadSettingsData() {
   const { data } = await supabase.from('profiles').select('*').eq('id', currentUser.id).single();
@@ -180,16 +189,19 @@ document.getElementById('formSettings').addEventListener('submit', async (e) => 
   const newCompany = document.getElementById('settingCompanyName').value;
   const newUsername = document.getElementById('settingUsername').value;
 
-  const { error } = await supabase.from('profiles').update({
+  // Gunakan UPSERT dan paksa database mengembalikan data (select) untuk memastikan tersimpan
+  const { data, error } = await supabase.from('profiles').upsert({
+    id: currentUser.id,
     nama: newUsername,
     nama_perusahaan: newCompany
-  }).eq('id', currentUser.id);
+  }).select().single();
 
   if (error) return alert('Gagal menyimpan: ' + error.message);
+  if (!data) return alert('Gagal menyimpan: Pastikan aturan keamanan (RLS) di Supabase sudah benar.');
 
-  alert('Pengaturan berhasil disimpan!');
+  alert('Pengaturan berhasil disimpan permanen!');
   
-  // Update UI secara langsung tanpa refresh
+  // Update UI secara langsung
   document.getElementById('sidebarBrandName').textContent = newCompany;
   document.getElementById('userNameDisplay').textContent = newUsername;
   document.getElementById('footerCompanyName').textContent = newCompany;
