@@ -35,10 +35,14 @@ button { cursor: pointer; }
 .sidebar-footer { padding: 20px 12px; border-top: 1px solid #e5e7eb; }
 
 /* MAIN CONTENT */
-.main-content { flex: 1; margin-left: 260px; display: flex; flex-direction: column; height: 100vh; overflow-y: auto; background: #e5e7eb; transition: margin-left 0.3s ease; width: calc(100% - 260px); }
+.main-content { flex: 1; margin-left: 260px; display: flex; flex-direction: column; height: 100vh; overflow-y: auto; background: #e5e7eb; transition: margin-left 0.3s ease, width 0.3s ease; width: calc(100% - 260px); }
 .topbar { background: white; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e5e7eb; position: sticky; top: 0; z-index: 50; }
 .topbar-left { display: flex; align-items: center; gap: 16px; flex: 1; }
-.hamburger { display: none; background: none; border: none; font-size: 20px; color: #4b5563; cursor: pointer; padding: 5px; }
+
+/* HAMBURGER: Tampil di semua device */
+.hamburger { display: flex; align-items: center; justify-content: center; background: none; border: none; font-size: 20px; color: #4b5563; cursor: pointer; padding: 5px; transition: transform 0.2s; }
+.hamburger:hover { color: #111827; transform: scale(1.1); }
+
 .search-bar { display: flex; align-items: center; background: #f3f4f6; padding: 10px 16px; border-radius: 8px; width: 400px; max-width: 100%; transition: 0.3s; }
 .search-bar:focus-within { background: white; box-shadow: 0 0 0 2px #2563eb; }
 .search-bar input { border: none; background: transparent; outline: none; margin-left: 10px; width: 100%; font-size: 14px; }
@@ -48,6 +52,10 @@ button { cursor: pointer; }
 .user-profile .avatar { width: 24px; height: 24px; border-radius: 50%; background: #9ca3af; flex-shrink: 0; }
 
 .content-area { padding: 24px; animation: fadeIn 0.4s ease; width: 100%; max-width: 100%; overflow-x: hidden; }
+
+/* FITUR BARU: STATE SIDEBAR TERTUTUP (DESKTOP) */
+.app-layout.sidebar-closed .sidebar { transform: translateX(-100%); }
+.app-layout.sidebar-closed .main-content { margin-left: 0; width: 100%; }
 
 /* DROPDOWN PROFIL */
 .profile-dropdown-container { position: relative; }
@@ -137,7 +145,6 @@ button { cursor: pointer; }
    RESPONSIVE DESIGN (TABLET & MOBILE)
    ========================================== */
 
-/* TABLET (Lebar <= 1024px) */
 @media (max-width: 1024px) {
   .dashboard-cards { grid-template-columns: repeat(2, 1fr); }
   .dashboard-tables { grid-template-columns: 1fr; }
@@ -146,16 +153,17 @@ button { cursor: pointer; }
   .sidebar.open { transform: translateX(0); }
   
   .main-content { margin-left: 0; width: 100%; }
-  .hamburger { display: block; }
+  /* Hapus class sidebar-closed pada mobile agar tidak bentrok */
+  .app-layout.sidebar-closed .main-content { margin-left: 0; width: 100%; }
+  
   .sidebar-overlay.open { display: block; opacity: 1; }
 }
 
-/* MOBILE (Lebar <= 768px) */
 @media (max-width: 768px) {
   .dashboard-cards { grid-template-columns: 1fr; }
   
   .topbar { flex-direction: column; align-items: stretch; padding: 12px 16px; gap: 12px; }
-  .topbar-left { width: 100%; justify-content: space-between; }
+  .topbar-left { width: 100%; justify-content: flex-start; }
   .search-bar { width: 100%; flex: 1; margin-left: 10px; }
   .topbar-right { justify-content: flex-end; }
   
