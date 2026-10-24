@@ -11,8 +11,14 @@ let isEditingProduk = false;
 let chartInstance = null;
 
 /* =========================================
-   UI & NAVIGATION (MENGAKTIFKAN SEMUA TOMBOL)
+   UI & NAVIGATION 
 ========================================= */
+// FUNGSI BARU: Buka/Tutup Sidebar di Mobile
+window.toggleMobileSidebar = () => {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebarOverlay').classList.toggle('open');
+};
+
 window.toggleAuth = (type) => {
   document.getElementById('authError').classList.add('hidden');
   document.getElementById('loginBox').classList.toggle('hidden', type === 'register');
@@ -20,6 +26,12 @@ window.toggleAuth = (type) => {
 };
 
 window.showPage = (pageId, el) => {
+  // Tutup sidebar otomatis saat menu diklik (di Mobile)
+  if(window.innerWidth <= 1024) {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sidebarOverlay').classList.remove('open');
+  }
+
   document.querySelectorAll('.page-view').forEach(v => v.classList.add('hidden'));
   const target = document.getElementById(`page-${pageId}`);
   if (target) {
@@ -32,7 +44,6 @@ window.showPage = (pageId, el) => {
   document.querySelectorAll('.menu-item, .submenu a').forEach(a => a.classList.remove('active'));
   if (el) el.classList.add('active');
 
-  // Reset search bar setiap ganti halaman
   document.getElementById('globalSearch').value = '';
 
   if (pageId === 'dashboard') loadDashboard();
@@ -42,7 +53,6 @@ window.showPage = (pageId, el) => {
   if (pageId === 'history') loadHistory();
   if (pageId === 'inputKeluar') {
     loadDropdownProduk();
-    // Set default date today
     document.getElementById('outTanggal').value = new Date().toISOString().split('T')[0];
   }
 };
@@ -59,23 +69,14 @@ window.toggleSubmenu = (element) => {
 window.closeModal = (modalId) => document.getElementById(modalId).classList.add('hidden');
 window.closeModalOutside = (event, modalId) => { if (event.target.id === modalId) closeModal(modalId); };
 
-/* =========================================
-   REAL-TIME SEARCH BAR
-========================================= */
 window.filterTable = () => {
   const input = document.getElementById('globalSearch').value.toLowerCase();
   const activePage = document.querySelector('.page-view:not(.hidden)');
   if (!activePage) return;
-
-  // Cari semua baris tabel di halaman yang sedang aktif
   const rows = activePage.querySelectorAll('table tbody tr');
   rows.forEach(row => {
     const text = row.innerText.toLowerCase();
-    if (text.includes(input)) {
-      row.style.display = '';
-    } else {
-      row.style.display = 'none';
-    }
+    row.style.display = text.includes(input) ? '' : 'none';
   });
 };
 
@@ -91,9 +92,7 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
   if (error) { 
     document.getElementById('authError').textContent = error.message; 
     document.getElementById('authError').classList.remove('hidden'); 
-  } else {
-    initApp(data.user);
-  }
+  } else { initApp(data.user); }
 });
 
 document.getElementById('registerForm').addEventListener('submit', async (e) => {
@@ -143,7 +142,6 @@ async function loadDashboard() {
     document.getElementById('statNilaiAset').textContent = 'Rp ' + nilaiAset.toLocaleString('id-ID');
   }
 
-  // Load Chart
   if (products) {
     const labels = products.map(p => p.nama);
     const dataStok = products.map(p => p.stok);
@@ -152,20 +150,11 @@ async function loadDashboard() {
     const ctx = document.getElementById('dashboardChart').getContext('2d');
     chartInstance = new Chart(ctx, {
       type: 'bar',
-      data: {
-        labels: labels,
-        datasets: [{
-          label: 'Sisa Stok',
-          data: dataStok,
-          backgroundColor: '#3b82f6',
-          borderRadius: 6
-        }]
-      },
-      options: { responsive: true, plugins: { legend: { display: false } } }
+      data: { labels: labels, datasets: [{ label: 'Sisa Stok', data: dataStok, backgroundColor: '#3b82f6', borderRadius: 6 }] },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
     });
   }
 
-  // Load Riwayat Aktivitas Terbaru
   const { data: ins } = await supabase.from('purchase_orders').select('tanggal, po_items(jumlah, products(nama))').order('created_at', { ascending: false }).limit(3);
   const { data: outs } = await supabase.from('stock_out').select('tanggal, jumlah, products(nama)').order('created_at', { ascending: false }).limit(3);
   
@@ -344,11 +333,9 @@ document.getElementById('formProduk').addEventListener('submit', async (e) => {
   let error;
 
   if (id) {
-    // Mode Edit: Jangan update stok
     const { error: err } = await supabase.from('products').update(payload).eq('id', id);
     error = err;
   } else {
-    // Mode Tambah: Stok default 0
     payload.stok = 0;
     const { error: err } = await supabase.from('products').insert(payload);
     error = err;
