@@ -1,7 +1,10 @@
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
-
+/* ============================================================
+   ⚠️ GANTI DENGAN KREDENSIAL SUPABASE ANDA
+   ============================================================ */
 const SUPABASE_URL = 'https://vggxtpyduiiaazoloylx.supabase.co/';
 const SUPABASE_ANON_KEY = 'sb_publishable_kQifdwQIic-ycFJBLPa8Og_TvOSw13Z';
+
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let currentUser = null;
@@ -136,12 +139,18 @@ async function initApp(user) {
   document.getElementById('authScreen').classList.add('hidden');
   document.getElementById('appScreen').classList.remove('hidden');
   
+  // Set Tahun Otomatis di Footer
+  document.getElementById('year').textContent = new Date().getFullYear();
+  
   // Load profil dari database
   const { data } = await supabase.from('profiles').select('*').eq('id', user.id).single();
   if (data) {
     document.getElementById('userNameDisplay').textContent = data.nama || user.email.split('@')[0];
     if (data.nama_perusahaan) {
       document.getElementById('sidebarBrandName').textContent = data.nama_perusahaan;
+      document.getElementById('footerCompanyName').textContent = data.nama_perusahaan;
+      const footerLogo = document.getElementById('footerBrandLogoText');
+      if(footerLogo) footerLogo.textContent = data.nama_perusahaan;
     }
   } else {
     document.getElementById('userNameDisplay').textContent = user.email.split('@')[0];
@@ -156,7 +165,7 @@ async function initApp(user) {
 supabase.auth.getSession().then(({ data: { session } }) => { if (session) initApp(session.user); });
 
 /* =========================================
-   SETTINGS (BARU)
+   SETTINGS
 ========================================= */
 async function loadSettingsData() {
   const { data } = await supabase.from('profiles').select('*').eq('id', currentUser.id).single();
@@ -183,6 +192,9 @@ document.getElementById('formSettings').addEventListener('submit', async (e) => 
   // Update UI secara langsung tanpa refresh
   document.getElementById('sidebarBrandName').textContent = newCompany;
   document.getElementById('userNameDisplay').textContent = newUsername;
+  document.getElementById('footerCompanyName').textContent = newCompany;
+  const footerLogo = document.getElementById('footerBrandLogoText');
+  if(footerLogo) footerLogo.textContent = newCompany;
 });
 
 /* =========================================
