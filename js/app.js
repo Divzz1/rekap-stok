@@ -7,9 +7,11 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let currentUser = null;
 let tempStokData = []; 
 let masterTipeAktif = '';
+let isEditingProduk = false;
+let chartInstance = null;
 
 /* =========================================
-   UI & NAVIGATION
+   UI & NAVIGATION (MENGAKTIFKAN SEMUA TOMBOL)
 ========================================= */
 window.toggleAuth = (type) => {
   document.getElementById('authError').classList.add('hidden');
@@ -30,12 +32,19 @@ window.showPage = (pageId, el) => {
   document.querySelectorAll('.menu-item, .submenu a').forEach(a => a.classList.remove('active'));
   if (el) el.classList.add('active');
 
+  // Reset search bar setiap ganti halaman
+  document.getElementById('globalSearch').value = '';
+
   if (pageId === 'dashboard') loadDashboard();
-  if (pageId.startsWith('master')) loadMasterData(pageId.replace('master', '').toLowerCase());
+  if (pageId.startsWith('master') && pageId !== 'masterProduk') loadMasterData(pageId.replace('master', '').toLowerCase());
   if (pageId === 'masterProduk') loadProducts();
   if (pageId === 'stok') loadStokPage();
   if (pageId === 'history') loadHistory();
-  if (pageId === 'inputKeluar') loadDropdownProduk();
+  if (pageId === 'inputKeluar') {
+    loadDropdownProduk();
+    // Set default date today
+    document.getElementById('outTanggal').value = new Date().toISOString().split('T')[0];
+  }
 };
 
 window.toggleSubmenu = (element) => {
@@ -48,9 +57,30 @@ window.toggleSubmenu = (element) => {
 };
 
 window.closeModal = (modalId) => document.getElementById(modalId).classList.add('hidden');
+window.closeModalOutside = (event, modalId) => { if (event.target.id === modalId) closeModal(modalId); };
 
 /* =========================================
-   AUTH
+   REAL-TIME SEARCH BAR
+========================================= */
+window.filterTable = () => {
+  const input = document.getElementById('globalSearch').value.toLowerCase();
+  const activePage = document.querySelector('.page-view:not(.hidden)');
+  if (!activePage) return;
+
+  // Cari semua baris tabel di halaman yang sedang aktif
+  const rows = activePage.querySelectorAll('table tbody tr');
+  rows.forEach(row => {
+    const text = row.innerText.toLowerCase();
+    if (text.includes(input)) {
+      row.style.display = '';
+    } else {
+      row.style.display = 'none';
+    }
+  });
+};
+
+/* =========================================
+   AUTHENTICATION
 ========================================= */
 document.getElementById('loginForm').addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -58,8 +88,12 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
     email: document.getElementById('loginEmail').value, 
     password: document.getElementById('loginPass').value 
   });
-  if (error) { document.getElementById('authError').textContent = error.message; document.getElementById('authError').classList.remove('hidden'); }
-  else initApp(data.user);
+  if (error) { 
+    document.getElementById('authError').textContent = error.message; 
+    document.getElementById('authError').classList.remove('hidden'); 
+  } else {
+    initApp(data.user);
+  }
 });
 
 document.getElementById('registerForm').addEventListener('submit', async (e) => {
@@ -69,8 +103,13 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
     password: document.getElementById('regPass').value,
     options: { data: { nama: document.getElementById('regNama').value } }
   });
-  if (error) { document.getElementById('authError').textContent = error.message; document.getElementById('authError').classList.remove('hidden'); }
-  else { alert('Registrasi berhasil! Silakan login.'); toggleAuth('login'); }
+  if (error) { 
+    document.getElementById('authError').textContent = error.message; 
+    document.getElementById('authError').classList.remove('hidden'); 
+  } else { 
+    alert('Registrasi berhasil! Silakan login.'); 
+    toggleAuth('login'); 
+  }
 });
 
 window.logout = async () => { await supabase.auth.signOut(); location.reload(); };
@@ -81,38 +120,65 @@ function initApp(user) {
   document.getElementById('appScreen').classList.remove('hidden');
   document.getElementById('userNameDisplay').textContent = user.email.split('@')[0];
   
-  const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-  document.getElementById('currentDate').textContent = new Date().toLocaleDateString('id-ID', options);
-  
   const firstGroup = document.querySelector('.menu-group');
   if(firstGroup) toggleSubmenu(firstGroup.querySelector('.menu-item'));
   
-  loadDashboard();
+  showPage('dashboard', document.querySelector('.menu-item'));
 }
 
 supabase.auth.getSession().then(({ data: { session } }) => { if (session) initApp(session.user); });
 
 /* =========================================
-   DASHBOARD (NILAI ASET & LOW STOCK)
+   DASHBOARD & CHART
 ========================================= */
 async function loadDashboard() {
-  const { data: products } = await supabase.from('products').select('*');
-  const { data: pos } = await supabase.from('purchase_orders').select('*').order('created_at', { ascending: false }).limit(5);
-  const { data: outs } = await supabase.from('stock_out').select('*, products(nama)').order('created_at', { ascending: false }).limit(5);
+  const { data: products } = await supabase.from('products').select('*').order('nama').limit(5);
+  const { data: allProducts } = await supabase.from('products').select('stok, harga_jual');
   
-  if (products) {
-    document.getElementById('statTotalProduk').textContent = products.length;
-    document.getElementById('statLowStok').textContent = products.filter(p => p.stok < 10).length;
-    
-    // Hitung Total Nilai Aset
+  if (allProducts) {
+    document.getElementById('statTotalProduk').textContent = allProducts.length;
+    document.getElementById('statLowStok').textContent = allProducts.filter(p => p.stok < 10).length;
     let nilaiAset = 0;
-    products.forEach(p => { nilaiAset += (p.stok * p.harga_jual); });
+    allProducts.forEach(p => { nilaiAset += (p.stok * p.harga_jual); });
     document.getElementById('statNilaiAset').textContent = 'Rp ' + nilaiAset.toLocaleString('id-ID');
   }
 
-  if (pos) document.getElementById('dashPOTable').innerHTML = pos.map(po => `<tr><td>${new Date(po.tanggal).toLocaleDateString('id-ID')}</td><td>${po.no_po}</td><td>${po.total_item} Item</td></tr>`).join('') || '<tr><td colspan="3" align="center">Belum ada data</td></tr>';
+  // Load Chart
+  if (products) {
+    const labels = products.map(p => p.nama);
+    const dataStok = products.map(p => p.stok);
+    
+    if (chartInstance) chartInstance.destroy();
+    const ctx = document.getElementById('dashboardChart').getContext('2d');
+    chartInstance = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Sisa Stok',
+          data: dataStok,
+          backgroundColor: '#3b82f6',
+          borderRadius: 6
+        }]
+      },
+      options: { responsive: true, plugins: { legend: { display: false } } }
+    });
+  }
+
+  // Load Riwayat Aktivitas Terbaru
+  const { data: ins } = await supabase.from('purchase_orders').select('tanggal, po_items(jumlah, products(nama))').order('created_at', { ascending: false }).limit(3);
+  const { data: outs } = await supabase.from('stock_out').select('tanggal, jumlah, products(nama)').order('created_at', { ascending: false }).limit(3);
   
-  if (outs) document.getElementById('dashOutTable').innerHTML = outs.map(o => `<tr><td>${new Date(o.tanggal).toLocaleDateString('id-ID')}</td><td>${o.products?.nama || '-'}</td><td>${o.jumlah}</td></tr>`).join('') || '<tr><td colspan="3" align="center">Belum ada data</td></tr>';
+  let history = [];
+  if (ins) ins.forEach(po => po.po_items.forEach(item => history.push({ tgl: po.tanggal, tipe: 'Masuk', nama: item.products?.nama, qty: item.jumlah })));
+  if (outs) outs.forEach(o => history.push({ tgl: o.tanggal, tipe: 'Keluar', nama: o.products?.nama, qty: o.jumlah }));
+  
+  history.sort((a,b) => new Date(b.tgl) - new Date(a.tgl));
+  document.getElementById('dashHistoryTable').innerHTML = history.slice(0,5).map(h => `
+    <tr><td>${new Date(h.tgl).toLocaleDateString('id-ID')}</td>
+        <td><span class="badge ${h.tipe === 'Masuk' ? 'success' : 'warning'}">${h.tipe}</span></td>
+        <td>${h.nama || '-'}</td><td>${h.qty}</td></tr>
+  `).join('') || '<tr><td colspan="4" align="center">Belum ada aktivitas</td></tr>';
 }
 
 /* =========================================
@@ -126,7 +192,7 @@ window.tambahKeTabelSementara = async () => {
   if (!sku || !jml || !harga) return alert('Isi SKU, Jumlah, dan Harga dengan benar.');
 
   const { data: prod, error } = await supabase.from('products').select('*').eq('sku', sku).single();
-  if (error || !prod) return alert('SKU tidak ditemukan di database!');
+  if (error || !prod) return alert('SKU tidak ditemukan di Master Produk!');
 
   tempStokData.push({ ...prod, jumlahBeli: jml, hargaBeli: harga });
   renderTempStok();
@@ -153,31 +219,29 @@ function renderTempStok() {
 window.hapusTempStok = (index) => { tempStokData.splice(index, 1); renderTempStok(); };
 
 window.simpanStokMassal = async () => {
-  if (tempStokData.length === 0) return alert('Belum ada data.');
+  if (tempStokData.length === 0) return alert('Belum ada data untuk disimpan.');
   const noPo = 'PO-' + Date.now().toString().slice(-6);
   const today = new Date().toISOString().split('T')[0];
 
   const { data: po, error: poErr } = await supabase.from('purchase_orders').insert({ no_po: noPo, tanggal: today, total_item: tempStokData.length }).select().single();
-  if (poErr) return alert('Gagal membuat PO: ' + poErr.message);
+  if (poErr) return alert('Gagal: ' + poErr.message);
 
   for (let item of tempStokData) {
     await supabase.from('po_items').insert({ po_id: po.id, product_id: item.id, jumlah: item.jumlahBeli, harga: item.hargaBeli });
     await supabase.from('products').update({ stok: item.stok + item.jumlahBeli }).eq('id', item.id);
   }
-  alert('Barang masuk berhasil disimpan!');
+  alert('Transaksi Masuk Berhasil Disimpan!');
   tempStokData = []; renderTempStok(); loadDashboard();
 };
 
 /* =========================================
-   BARANG KELUAR (STOCK OUT)
+   BARANG KELUAR
 ========================================= */
 async function loadDropdownProduk() {
   const select = document.getElementById('outProdukId');
   const { data } = await supabase.from('products').select('id, sku, nama, stok').gt('stok', 0).order('nama');
   
-  if (!data || data.length === 0) {
-    select.innerHTML = '<option value="">Tidak ada stok tersedia</option>'; return;
-  }
+  if (!data || data.length === 0) { select.innerHTML = '<option value="">Tidak ada stok tersedia</option>'; return; }
   select.innerHTML = data.map(p => `<option value="${p.id}">${p.sku} - ${p.nama} (Sisa: ${p.stok})</option>`).join('');
 }
 
@@ -187,29 +251,19 @@ document.getElementById('formKeluar').addEventListener('submit', async (e) => {
   const jml = parseInt(document.getElementById('outJumlah').value);
   
   const { data: prod } = await supabase.from('products').select('stok').eq('id', prodId).single();
-  if (prod.stok < jml) return alert('Gagal: Stok tidak mencukupi! Sisa stok saat ini: ' + prod.stok);
+  if (prod.stok < jml) return alert(`Gagal: Stok tidak mencukupi! Sisa: ${prod.stok}`);
 
-  const payload = {
-    user_id: currentUser.id,
-    product_id: prodId,
-    jumlah: jml,
-    tanggal: document.getElementById('outTanggal').value,
-    keterangan: document.getElementById('outKet').value
-  };
-
+  const payload = { user_id: currentUser.id, product_id: prodId, jumlah: jml, tanggal: document.getElementById('outTanggal').value, keterangan: document.getElementById('outKet').value };
   const { error } = await supabase.from('stock_out').insert(payload);
   if (error) return alert('Gagal: ' + error.message);
 
-  // Update stok produk (kurangi)
   await supabase.from('products').update({ stok: prod.stok - jml }).eq('id', prodId);
-  
-  alert('Barang keluar berhasil dicatat!');
-  e.target.reset();
-  loadDashboard();
+  alert('Barang Keluar Berhasil Dicatat!');
+  e.target.reset(); loadDashboard();
 });
 
 /* =========================================
-   MASTER DATA & PRODUK
+   MASTER DATA (Bisa Edit & Hapus)
 ========================================= */
 window.openModalMaster = (tipe) => {
   masterTipeAktif = tipe;
@@ -232,9 +286,8 @@ async function loadMasterData(tipe) {
   if (!tbody) return;
 
   const { data } = await supabase.from('master_data').select('*').eq('tipe', tipe).order('nama');
-  if (!data || data.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="3" style="text-align:center;">Belum ada data.</td></tr>`; return;
-  }
+  if (!data || data.length === 0) { tbody.innerHTML = `<tr><td colspan="3" style="text-align:center;">Belum ada data.</td></tr>`; return; }
+  
   tbody.innerHTML = data.map((d, i) => `
     <tr><td>${i+1}.</td><td>${d.nama}</td>
     <td><button class="btn-sm red" onclick="hapusMaster(${d.id}, '${tipe}')">Hapus</button></td></tr>
@@ -247,8 +300,29 @@ window.hapusMaster = async (id, tipe) => {
   loadMasterData(tipe);
 };
 
-window.bukaDetailProduk = () => {
+/* =========================================
+   PRODUK (Bisa Tambah, Edit, Hapus)
+========================================= */
+window.bukaDetailProduk = (id = null) => {
+  isEditingProduk = id !== null;
   document.getElementById('formProduk').reset();
+  document.getElementById('prodId').value = id || '';
+  
+  document.getElementById('modalProdukTitle').textContent = isEditingProduk ? 'Edit Produk' : 'Tambah Produk Baru';
+  document.getElementById('btnSimpanProduk').textContent = isEditingProduk ? 'Update Produk' : 'Simpan Produk';
+
+  if (isEditingProduk) {
+    supabase.from('products').select('*').eq('id', id).single().then(({ data: p }) => {
+      document.getElementById('prodSku').value = p.sku;
+      document.getElementById('prodNama').value = p.nama;
+      document.getElementById('prodMerk').value = p.merk || '';
+      document.getElementById('prodLokasi').value = p.lokasi || '';
+      document.getElementById('prodJenis').value = p.jenis || '';
+      document.getElementById('prodUkuran').value = p.ukuran || '';
+      document.getElementById('prodStatus').value = p.status || 'Tersedia';
+      document.getElementById('prodHarga').value = p.harga_jual;
+    });
+  }
   document.getElementById('modalProduk').classList.remove('hidden');
 };
 
@@ -263,13 +337,25 @@ document.getElementById('formProduk').addEventListener('submit', async (e) => {
     ukuran: document.getElementById('prodUkuran').value,
     status: document.getElementById('prodStatus').value,
     harga_jual: parseFloat(document.getElementById('prodHarga').value),
-    stok: 0, // Stok awal 0, diisi lewat PO
     user_id: currentUser.id
   };
 
-  const { error } = await supabase.from('products').insert(payload);
-  if (error) return alert('Gagal simpan: ' + error.message);
-  closeModal('modalProduk'); loadProducts();
+  const id = document.getElementById('prodId').value;
+  let error;
+
+  if (id) {
+    // Mode Edit: Jangan update stok
+    const { error: err } = await supabase.from('products').update(payload).eq('id', id);
+    error = err;
+  } else {
+    // Mode Tambah: Stok default 0
+    payload.stok = 0;
+    const { error: err } = await supabase.from('products').insert(payload);
+    error = err;
+  }
+
+  if (error) return alert('Gagal: ' + error.message);
+  closeModal('modalProduk'); loadProducts(); loadDashboard();
 });
 
 async function loadProducts() {
@@ -282,15 +368,18 @@ async function loadProducts() {
       <td>${p.sku}</td><td>${p.nama}</td><td>${p.lokasi || '-'}</td>
       <td><span class="badge ${p.status === 'Tersedia' ? 'success' : 'danger'}">${p.status}</span></td>
       <td>${p.stok}</td><td>Rp ${p.harga_jual.toLocaleString('id-ID')}</td>
-      <td><button class="btn-sm outline" onclick="hapusProduk(${p.id})">Hapus</button></td>
+      <td>
+        <button class="btn-sm outline" onclick="bukaDetailProduk(${p.id})"><i class="fa-solid fa-pen"></i></button>
+        <button class="btn-sm red" onclick="hapusProduk(${p.id})"><i class="fa-solid fa-trash"></i></button>
+      </td>
     </tr>
   `).join('');
 }
 
 window.hapusProduk = async (id) => {
-  if (!confirm('Hapus produk ini?')) return;
+  if (!confirm('Hapus produk ini? Seluruh riwayat PO/Keluar produk ini akan terhapus.')) return;
   await supabase.from('products').delete().eq('id', id);
-  loadProducts();
+  loadProducts(); loadDashboard();
 };
 
 /* =========================================
@@ -305,42 +394,22 @@ async function loadStokPage() {
 
 async function loadHistory() {
   const tbody = document.getElementById('tableHistory');
-  
-  // Ambil data masuk
   const { data: ins } = await supabase.from('purchase_orders').select('*, po_items(jumlah, products(nama))');
-  // Ambil data keluar
   const { data: outs } = await supabase.from('stock_out').select('*, products(nama)');
   
   let history = [];
-  
-  if (ins) {
-    ins.forEach(po => {
-      po.po_items.forEach(item => {
-        history.push({ tanggal: po.tanggal, tipe: 'Masuk (PO)', produk: item.products?.nama, jumlah: item.jumlah, ket: po.no_po, created: po.created_at });
-      });
-    });
-  }
-  
-  if (outs) {
-    outs.forEach(o => {
-      history.push({ tanggal: o.tanggal, tipe: 'Keluar', produk: o.products?.nama, jumlah: o.jumlah, ket: o.keterangan, created: o.created_at });
-    });
-  }
+  if (ins) ins.forEach(po => po.po_items.forEach(item => history.push({ tanggal: po.tanggal, tipe: 'Masuk (PO)', produk: item.products?.nama, jumlah: item.jumlah, ket: po.no_po, created: po.created_at })));
+  if (outs) outs.forEach(o => history.push({ tanggal: o.tanggal, tipe: 'Keluar', produk: o.products?.nama, jumlah: o.jumlah, ket: o.keterangan, created: o.created_at }));
 
-  // Urutkan berdasarkan tanggal terbaru
   history.sort((a, b) => new Date(b.created) - new Date(a.created));
 
-  if (history.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Belum ada history.</td></tr>'; return;
-  }
+  if (history.length === 0) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Belum ada history.</td></tr>'; return; }
 
   tbody.innerHTML = history.map(h => `
     <tr>
       <td>${new Date(h.tanggal).toLocaleDateString('id-ID')}</td>
       <td><span class="badge ${h.tipe.includes('Masuk') ? 'success' : 'warning'}">${h.tipe}</span></td>
-      <td>${h.produk || '-'}</td>
-      <td>${h.jumlah}</td>
-      <td>${h.ket || '-'}</td>
+      <td>${h.produk || '-'}</td><td>${h.jumlah}</td><td>${h.ket || '-'}</td>
     </tr>
   `).join('');
 }
