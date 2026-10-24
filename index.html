@@ -40,7 +40,7 @@
 <!-- APP -->
 <div id="appScreen" class="app-layout hidden">
   
-  <div id="sidebarOverlay" class="sidebar-overlay" onclick="toggleMobileSidebar()"></div>
+  <div id="sidebarOverlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
 
   <!-- SIDEBAR -->
   <aside class="sidebar" id="sidebar">
@@ -82,14 +82,14 @@
   <main class="main-content">
     <header class="topbar">
       <div class="topbar-left">
-        <button class="hamburger" onclick="toggleMobileSidebar()"><i class="fa-solid fa-bars"></i></button>
+        <!-- TOMBOL HAMBURGER: Menggunakan fungsi toggleSidebar() universal -->
+        <button class="hamburger" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
         <div class="search-bar">
           <i class="fa-solid fa-magnifying-glass"></i>
           <input type="text" id="globalSearch" placeholder="Cari SKU / Nama Produk..." onkeyup="filterTable()">
         </div>
       </div>
       <div class="topbar-right">
-        <!-- DROPDOWN PROFIL -->
         <div class="profile-dropdown-container">
           <div class="user-profile" onclick="toggleProfileMenu(event)">
             <span id="userNameDisplay">Admin</span>
