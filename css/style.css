@@ -13,7 +13,7 @@ button { cursor: pointer; }
 .auth-box button { width: 100%; }
 
 /* ===== LAYOUT DASAR ===== */
-.app-layout { display: flex; height: 100vh; width: 100vw; overflow: hidden; position: relative; }
+.app-layout { display: flex; min-height: 100vh; width: 100vw; overflow: hidden; position: relative; }
 
 /* ===== SIDEBAR ===== */
 .sidebar { width: 260px; background: #f9fafb; border-right: 1px solid #e5e7eb; display: flex; flex-direction: column; position: fixed; top: 0; bottom: 0; left: 0; z-index: 100; transition: transform 0.3s ease; }
@@ -36,7 +36,7 @@ button { cursor: pointer; }
 .sidebar-footer { padding: 20px 12px; border-top: 1px solid #e5e7eb; }
 
 /* ===== MAIN CONTENT & TOPBAR ===== */
-.main-content { flex: 1; margin-left: 260px; display: flex; flex-direction: column; height: 100vh; overflow-y: auto; background: #e5e7eb; transition: margin-left 0.3s ease, width 0.3s ease; width: calc(100% - 260px); }
+.main-content { flex: 1; margin-left: 260px; display: flex; flex-direction: column; min-height: 100vh; background: #e5e7eb; transition: margin-left 0.3s ease, width 0.3s ease; width: calc(100% - 260px); }
 .topbar { background: white; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e5e7eb; position: sticky; top: 0; z-index: 50; }
 .topbar-left { display: flex; align-items: center; gap: 16px; flex: 1; }
 
@@ -52,6 +52,7 @@ button { cursor: pointer; }
 .user-profile:hover { background: #e5e7eb; }
 .user-profile .avatar { width: 24px; height: 24px; border-radius: 50%; background: #9ca3af; flex-shrink: 0; }
 
+/* Konten utama fleksibel agar footer menempel di bawah */
 .content-area { padding: 24px; animation: fadeIn 0.4s ease; width: 100%; max-width: 100%; overflow-x: hidden; flex: 1; }
 
 /* STATE SIDEBAR TERTUTUP (DESKTOP) */
@@ -125,20 +126,12 @@ button { cursor: pointer; }
 .form-group input:focus, .form-group textarea:focus, .form-group select:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
 
 /* ===== MODAL (FIX SCROLL) ===== */
-.modal-overlay { 
-  position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: flex; z-index: 1000; opacity: 0; animation: fadeIn 0.3s forwards; padding: 20px; overflow-y: auto; 
-}
-
-.modal-content { 
-  background: white; width: 100%; max-width: 600px; border-radius: 12px; overflow: hidden; transform: scale(0.9); opacity: 0; animation: scaleUp 0.3s forwards; margin: auto; display: flex; flex-direction: column; 
-}
-
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: flex; z-index: 1000; opacity: 0; animation: fadeIn 0.3s forwards; padding: 20px; overflow-y: auto; }
+.modal-content { background: white; width: 100%; max-width: 600px; border-radius: 12px; overflow: hidden; transform: scale(0.9); opacity: 0; animation: scaleUp 0.3s forwards; margin: auto; display: flex; flex-direction: column; }
 .modal-header { padding: 16px 24px; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
 .close-btn { background: none; border: none; font-size: 24px; color: #6b7280; transition: 0.2s; }
 .close-btn:hover { color: #ef4444; transform: rotate(90deg); }
-
 .modal-body { padding: 24px; overflow-y: auto; max-height: 70vh; }
-
 .modal-footer { padding: 16px 24px; border-top: 1px solid #e5e7eb; display: flex; justify-content: flex-end; gap: 12px; flex-shrink: 0; background: white; }
 
 .page-header-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
@@ -150,7 +143,6 @@ button { cursor: pointer; }
   border-top: 1px solid #e5e7eb;
   color: #6b7280;
   padding: 24px 32px;
-  margin-top: auto; /* Memastikan footer selalu menempel di bawah layar */
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -234,28 +226,6 @@ button { cursor: pointer; }
   transform: scale(1.1);
 }
 
-/* Responsif untuk HP / Tablet */
-@media (max-width: 900px) {
-  .app-footer {
-    flex-direction: column;
-    text-align: center;
-    padding: 20px;
-  }
-  
-  .footer-left {
-    align-items: center;
-  }
-  
-  .footer-right {
-    flex-direction: column;
-    gap: 16px;
-  }
-  
-  .footer-links {
-    justify-content: center;
-  }
-}
-
 /* ===== KEYFRAMES ===== */
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
@@ -267,33 +237,42 @@ button { cursor: pointer; }
 @media (max-width: 1024px) {
   .dashboard-cards { grid-template-columns: repeat(2, 1fr); }
   .dashboard-tables { grid-template-columns: 1fr; }
+  
   .sidebar { transform: translateX(-100%); width: 280px; box-shadow: 4px 0 10px rgba(0,0,0,0.1); }
   .sidebar.open { transform: translateX(0); }
+  
   .main-content { margin-left: 0; width: 100%; }
   .app-layout.sidebar-closed .main-content { margin-left: 0; width: 100%; }
+  
   .sidebar-overlay.open { display: block; opacity: 1; }
 }
 
 @media (max-width: 900px) {
-  .app-footer { flex-direction: column; padding: 30px 20px; margin: 20px 16px 16px 16px; }
-  .footer-right { align-items: flex-start; width: 100%; }
-  .top-right-row { width: 100%; justify-content: space-between; flex-direction: row-reverse; }
-  .footer-links { width: 100%; flex-wrap: wrap; gap: 30px; }
+  .app-footer { flex-direction: column; text-align: center; padding: 20px; }
+  .footer-left { align-items: center; }
+  .footer-right { flex-direction: column; gap: 16px; }
+  .footer-links { justify-content: center; }
 }
 
 @media (max-width: 768px) {
   .dashboard-cards { grid-template-columns: 1fr; }
+  
   .topbar { flex-direction: column; align-items: stretch; padding: 12px 16px; gap: 12px; }
   .topbar-left { width: 100%; justify-content: flex-start; }
   .search-bar { width: 100%; flex: 1; margin-left: 10px; }
   .topbar-right { justify-content: flex-end; }
+  
   .content-area { padding: 16px; }
+  
   .input-stok-header { flex-direction: column; align-items: stretch; }
   .form-inline { width: 100%; }
+  
   .page-header-flex { flex-direction: column; align-items: flex-start; gap: 12px; }
   .page-header-flex button { width: 100%; }
+  
   .table-footer { justify-content: stretch; }
   .table-footer button { width: 100%; }
+  
   .modal-footer { flex-direction: column; }
   .modal-footer button { width: 100%; }
 }
