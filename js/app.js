@@ -5,7 +5,6 @@ import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js
    ============================================================ */
 const SUPABASE_URL = 'https://vggxtpyduiiaazoloylx.supabase.co/';
 const SUPABASE_ANON_KEY = 'sb_publishable_kQifdwQIic-ycFJBLPa8Og_TvOSw13Z';
-
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let currentUser = null;
@@ -35,9 +34,7 @@ document.addEventListener('click', (event) => {
   const dropdown = document.getElementById('profileDropdown');
   const container = document.querySelector('.profile-dropdown-container');
   if (dropdown && !dropdown.classList.contains('hidden')) {
-    if (!container.contains(event.target)) {
-      dropdown.classList.add('hidden');
-    }
+    if (!container.contains(event.target)) dropdown.classList.add('hidden');
   }
 });
 
@@ -142,8 +139,7 @@ async function initApp(user) {
   
   document.getElementById('year').textContent = new Date().getFullYear();
   
-  // Cek apakah profil ada. Jika tidak, buatkan otomatis (Upsert)
-  let { data, error } = await supabase.from('profiles').select('*').eq('id', user.id).maybeSingle();
+  let { data } = await supabase.from('profiles').select('*').eq('id', user.id).maybeSingle();
   
   if (!data) {
     const defaultNama = user.email.split('@')[0];
@@ -155,15 +151,7 @@ async function initApp(user) {
     data = newData;
   }
 
-  if (data) {
-    document.getElementById('userNameDisplay').textContent = data.nama || user.email.split('@')[0];
-    if (data.nama_perusahaan) {
-      document.getElementById('sidebarBrandName').textContent = data.nama_perusahaan;
-      document.getElementById('footerCompanyName').textContent = data.nama_perusahaan;
-      const footerLogo = document.getElementById('footerBrandLogoText');
-      if(footerLogo) footerLogo.textContent = data.nama_perusahaan;
-    }
-  }
+  updateUIProfile(data);
   
   const firstGroup = document.querySelector('.menu-group');
   if(firstGroup) toggleSubmenu(firstGroup.querySelector('.menu-item'));
@@ -171,42 +159,131 @@ async function initApp(user) {
   showPage('dashboard', document.querySelector('.menu-item'));
 }
 
+function updateUIProfile(data) {
+  if (!data) return;
+  
+  document.getElementById('userNameDisplay').textContent = data.nama || currentUser.email.split('@')[0];
+  document.getElementById('footerCompanyName').textContent = data.nama_perusahaan || 'Inventory';
+  document.getElementById('sidebarBrandName').textContent = data.nama_perusahaan || 'Inventory';
+  
+  const footerLogo = document.getElementById('footerBrandLogoText');
+  if(footerLogo) footerLogo.textContent = data.nama_perusahaan || 'Inventory';
+
+  // Set Avatar
+  const avatarImg = document.getElementById('userAvatarImg');
+  const avatarPlaceholder = document.querySelector('.avatar-placeholder');
+  if (data.avatar_url) {
+    avatarImg.src = data.avatar_url;
+    avatarImg.style.display = 'block';
+    avatarPlaceholder.style.display = 'none';
+  } else {
+    avatarImg.style.display = 'none';
+    avatarPlaceholder.style.display = 'block';
+  }
+
+  // Set Logo
+  const logoImg = document.getElementById('sidebarLogoImg');
+  const logoPlaceholder = document.querySelector('.brand-logo-placeholder');
+  if (data.logo_url) {
+    logoImg.src = data.logo_url;
+    logoImg.style.display = 'block';
+    logoPlaceholder.style.display = 'none';
+  } else {
+    logoImg.style.display = 'none';
+    logoPlaceholder.style.display = 'block';
+  }
+}
+
 supabase.auth.getSession().then(({ data: { session } }) => { if (session) initApp(session.user); });
 
 /* =========================================
-   SETTINGS (FIXED: PERMANEN & SINKRON)
+   SETTINGS & UPLOAD IMAGE
 ========================================= */
 async function loadSettingsData() {
   const { data } = await supabase.from('profiles').select('*').eq('id', currentUser.id).single();
   if (data) {
     document.getElementById('settingCompanyName').value = data.nama_perusahaan || 'Inventory';
     document.getElementById('settingUsername').value = data.nama || currentUser.email.split('@')[0];
+    
+    if(data.logo_url) {
+      document.getElementById('previewLogo').src = data.logo_url;
+      document.getElementById('previewLogo').style.display = 'block';
+    }
+    if(data.avatar_url) {
+      document.getElementById('previewAvatar').src = data.avatar_url;
+      document.getElementById('previewAvatar').style.display = 'block';
+    }
   }
+}
+
+async function uploadImage(file, folder) {
+  if (!file) return null;
+  const fileExt = file.name.split('.').pop();
+  const fileName = `${currentUser.id}-${Date.now()}.${fileExt}`;
+  const filePath = `${folder}/${fileName}`;
+  
+  const { error: uploadError } = await supabase.storage.from('inventory-images').upload(filePath, file);
+  if (uploadError) throw uploadError;
+  
+  const { data } = supabase.storage.from('inventory-images').getPublicUrl(filePath);
+  return data.publicUrl;
 }
 
 document.getElementById('formSettings').addEventListener('submit', async (e) => {
   e.preventDefault();
+  const btn = e.target.querySelector('button[type="submit"]');
+  const originalText = btn.innerHTML;
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan...';
+  btn.disabled = true;
+
   const newCompany = document.getElementById('settingCompanyName').value;
   const newUsername = document.getElementById('settingUsername').value;
-
-  // Gunakan UPSERT dan paksa database mengembalikan data (select) untuk memastikan tersimpan
-  const { data, error } = await supabase.from('profiles').upsert({
-    id: currentUser.id,
-    nama: newUsername,
-    nama_perusahaan: newCompany
-  }).select().single();
-
-  if (error) return alert('Gagal menyimpan: ' + error.message);
-  if (!data) return alert('Gagal menyimpan: Pastikan aturan keamanan (RLS) di Supabase sudah benar.');
-
-  alert('Pengaturan berhasil disimpan permanen!');
   
-  // Update UI secara langsung
-  document.getElementById('sidebarBrandName').textContent = newCompany;
-  document.getElementById('userNameDisplay').textContent = newUsername;
-  document.getElementById('footerCompanyName').textContent = newCompany;
-  const footerLogo = document.getElementById('footerBrandLogoText');
-  if(footerLogo) footerLogo.textContent = newCompany;
+  const logoFile = document.getElementById('inputLogo').files[0];
+  const avatarFile = document.getElementById('inputAvatar').files[0];
+
+  try {
+    let logoUrl = null;
+    let avatarUrl = null;
+
+    if (logoFile) logoUrl = await uploadImage(logoFile, 'logos');
+    if (avatarFile) avatarUrl = await uploadImage(avatarFile, 'avatars');
+
+    let updateData = {
+      id: currentUser.id,
+      nama: newUsername,
+      nama_perusahaan: newCompany
+    };
+    
+    if (logoUrl) updateData.logo_url = logoUrl;
+    if (avatarUrl) updateData.avatar_url = avatarUrl;
+
+    const { data, error } = await supabase.from('profiles').upsert(updateData).select().single();
+
+    if (error) throw error;
+
+    alert('Pengaturan berhasil disimpan!');
+    updateUIProfile(data);
+    
+    document.getElementById('inputLogo').value = '';
+    document.getElementById('inputAvatar').value = '';
+    
+    // Update preview jika baru upload
+    if(data.logo_url) {
+      document.getElementById('previewLogo').src = data.logo_url;
+      document.getElementById('previewLogo').style.display = 'block';
+    }
+    if(data.avatar_url) {
+      document.getElementById('previewAvatar').src = data.avatar_url;
+      document.getElementById('previewAvatar').style.display = 'block';
+    }
+    
+  } catch (error) {
+    alert('Gagal menyimpan: ' + error.message);
+  } finally {
+    btn.innerHTML = originalText;
+    btn.disabled = false;
+  }
 });
 
 /* =========================================
