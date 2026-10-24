@@ -46,7 +46,11 @@
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-brand">
       <div class="brand-logo"></div>
-      <div class="brand-text"><strong>Inventory</strong><span>Enterprise</span></div>
+      <div class="brand-text">
+        <!-- ID Ditambahkan untuk diubah via JS -->
+        <strong id="sidebarBrandName">Inventory</strong>
+        <span>Enterprise</span>
+      </div>
     </div>
     <nav class="sidebar-menu">
       <a href="#" class="menu-item active" onclick="showPage('dashboard', this)"><i class="fa-solid fa-house"></i> Dashboard</a>
@@ -74,6 +78,8 @@
       <a href="#" class="menu-item" onclick="showPage('history', this)"><i class="fa-solid fa-clock-rotate-left"></i> History Transaksi</a>
     </nav>
     <div class="sidebar-footer">
+      <!-- MENU SETTINGS BARU -->
+      <a href="#" class="menu-item" onclick="showPage('settings', this)"><i class="fa-solid fa-gear"></i> Settings</a>
       <a href="#" class="menu-item" onclick="logout()"><i class="fa-solid fa-arrow-right-from-bracket"></i> Log Out</a>
     </div>
   </aside>
@@ -82,7 +88,6 @@
   <main class="main-content">
     <header class="topbar">
       <div class="topbar-left">
-        <!-- TOMBOL HAMBURGER: Menggunakan fungsi toggleSidebar() universal -->
         <button class="hamburger" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
         <div class="search-bar">
           <i class="fa-solid fa-magnifying-glass"></i>
@@ -97,6 +102,9 @@
             <i class="fa-solid fa-chevron-down" style="font-size: 10px; margin-left: 4px; color: #6b7280;"></i>
           </div>
           <div class="dropdown-menu hidden" id="profileDropdown">
+            <a href="#" class="dropdown-item" onclick="showPage('settings', document.querySelector('.sidebar-footer a')); toggleProfileMenu(event); return false;">
+              <i class="fa-solid fa-gear"></i> Pengaturan
+            </a>
             <a href="#" class="dropdown-item" onclick="logout(); return false;">
               <i class="fa-solid fa-arrow-right-from-bracket"></i> Logout
             </a>
@@ -127,9 +135,7 @@
         <div class="dashboard-tables">
           <div class="card">
             <h3><i class="fa-solid fa-chart-simple"></i> Top 5 Stok Terbanyak</h3>
-            <div class="chart-container">
-              <canvas id="dashboardChart"></canvas>
-            </div>
+            <div class="chart-container"><canvas id="dashboardChart"></canvas></div>
           </div>
           <div class="card">
             <h3>Aktivitas Terakhir</h3>
@@ -140,6 +146,24 @@
               </table>
             </div>
           </div>
+        </div>
+      </div>
+
+      <!-- PAGE: SETTINGS (BARU) -->
+      <div id="page-settings" class="page-view hidden">
+        <h2 class="page-title">Pengaturan Akun & Aplikasi</h2>
+        <div class="card" style="max-width: 600px;">
+          <form id="formSettings">
+            <div class="form-group">
+              <label>Nama Perusahaan / Toko (Tampil di Kiri Atas)</label>
+              <input type="text" id="settingCompanyName" placeholder="Cth: PT Maju Jaya" required>
+            </div>
+            <div class="form-group">
+              <label>Username (Nama Tampilan Anda)</label>
+              <input type="text" id="settingUsername" placeholder="Cth: Diva Prawira" required>
+            </div>
+            <button type="submit" class="btn-primary"><i class="fa-solid fa-floppy-disk"></i> Simpan Pengaturan</button>
+          </form>
         </div>
       </div>
 
