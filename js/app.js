@@ -13,7 +13,22 @@ let chartInstance = null;
 /* =========================================
    UI & NAVIGATION 
 ========================================= */
-// FUNGSI BARU: Buka/Tutup Sidebar di Mobile
+window.toggleProfileMenu = (event) => {
+  event.stopPropagation();
+  const dropdown = document.getElementById('profileDropdown');
+  dropdown.classList.toggle('hidden');
+};
+
+document.addEventListener('click', (event) => {
+  const dropdown = document.getElementById('profileDropdown');
+  const container = document.querySelector('.profile-dropdown-container');
+  if (dropdown && !dropdown.classList.contains('hidden')) {
+    if (!container.contains(event.target)) {
+      dropdown.classList.add('hidden');
+    }
+  }
+});
+
 window.toggleMobileSidebar = () => {
   document.getElementById('sidebar').classList.toggle('open');
   document.getElementById('sidebarOverlay').classList.toggle('open');
@@ -26,7 +41,6 @@ window.toggleAuth = (type) => {
 };
 
 window.showPage = (pageId, el) => {
-  // Tutup sidebar otomatis saat menu diklik (di Mobile)
   if(window.innerWidth <= 1024) {
     document.getElementById('sidebar').classList.remove('open');
     document.getElementById('sidebarOverlay').classList.remove('open');
