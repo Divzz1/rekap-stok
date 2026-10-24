@@ -10,7 +10,7 @@
 </head>
 <body>
 
-<!-- AUTH -->
+<!-- AUTH SCREEN -->
 <div id="authScreen" class="auth-container">
   <div class="auth-box">
     <h2 style="margin-bottom: 20px;">Inventory System</h2>
@@ -37,7 +37,7 @@
   </div>
 </div>
 
-<!-- APP -->
+<!-- APP LAYOUT -->
 <div id="appScreen" class="app-layout hidden">
   
   <div id="sidebarOverlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
@@ -47,7 +47,6 @@
     <div class="sidebar-brand">
       <div class="brand-logo"></div>
       <div class="brand-text">
-        <!-- ID Ditambahkan untuk diubah via JS -->
         <strong id="sidebarBrandName">Inventory</strong>
         <span>Enterprise</span>
       </div>
@@ -78,7 +77,6 @@
       <a href="#" class="menu-item" onclick="showPage('history', this)"><i class="fa-solid fa-clock-rotate-left"></i> History Transaksi</a>
     </nav>
     <div class="sidebar-footer">
-      <!-- MENU SETTINGS BARU -->
       <a href="#" class="menu-item" onclick="showPage('settings', this)"><i class="fa-solid fa-gear"></i> Settings</a>
       <a href="#" class="menu-item" onclick="logout()"><i class="fa-solid fa-arrow-right-from-bracket"></i> Log Out</a>
     </div>
@@ -102,7 +100,7 @@
             <i class="fa-solid fa-chevron-down" style="font-size: 10px; margin-left: 4px; color: #6b7280;"></i>
           </div>
           <div class="dropdown-menu hidden" id="profileDropdown">
-            <a href="#" class="dropdown-item" onclick="showPage('settings', document.querySelector('.sidebar-footer a')); toggleProfileMenu(event); return false;">
+            <a href="#" class="dropdown-item" onclick="showPage('settings', document.querySelectorAll('.sidebar-footer a')[0]); toggleProfileMenu(event); return false;">
               <i class="fa-solid fa-gear"></i> Pengaturan
             </a>
             <a href="#" class="dropdown-item" onclick="logout(); return false;">
@@ -149,13 +147,13 @@
         </div>
       </div>
 
-      <!-- PAGE: SETTINGS (BARU) -->
+      <!-- SETTINGS -->
       <div id="page-settings" class="page-view hidden">
         <h2 class="page-title">Pengaturan Akun & Aplikasi</h2>
         <div class="card" style="max-width: 600px;">
           <form id="formSettings">
             <div class="form-group">
-              <label>Nama Perusahaan / Toko (Tampil di Kiri Atas)</label>
+              <label>Nama Perusahaan / Toko (Tampil di Kiri Atas & Footer)</label>
               <input type="text" id="settingCompanyName" placeholder="Cth: PT Maju Jaya" required>
             </div>
             <div class="form-group">
@@ -254,7 +252,41 @@
         </div>
       </div>
 
-    </div>
+    </div> <!-- END CONTENT-AREA -->
+
+    <!-- ====== FOOTER BARU ====== -->
+    <footer class="app-footer">
+      <div class="footer-left">
+        <div class="footer-brand">
+          <i class="fa-solid fa-cube"></i>
+          <span id="footerBrandLogoText">Inventory</span>
+        </div>
+        <p>&copy; <span id="year"></span> <span id="footerCompanyName">Inventory Enterprise</span>. All rights reserved.</p>
+        <p>Designed by <a href="https://rekap-stok.vercel.app/">D1vzz</a></p>
+      </div>
+      
+      <div class="footer-right">
+        <div class="top-right-row">
+          <a href="#" class="social-link" title="GitHub"><i class="fa-brands fa-linkedin"></i></a>
+        </div>
+        
+        <div class="footer-links">
+          <div class="link-col">
+            <a href="#" onclick="showPage('dashboard', document.querySelector('.menu-item')); return false;">Home</a>
+            <a href="#" onclick="showPage('inputMasuk', document.querySelectorAll('.submenu a')[0]); return false;">Inventory</a>
+          </div>
+          <div class="link-col">
+            <a href="#">Terms & Conditions</a>
+            <a href="#">Privacy Policy</a>
+          </div>
+          <div class="link-col">
+            <a href="#">Contact Us</a>
+          </div>
+        </div>
+      </div>
+    </footer>
+    <!-- ====== AKHIR FOOTER ====== -->
+
   </main>
 </div>
 
