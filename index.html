@@ -15,15 +15,15 @@
 <!-- AUTH SCREEN -->
 <div id="authScreen" class="auth-container">
   <div class="auth-box">
-    <h2 style="margin-bottom: 20px; font-weight: 700;">Inventory System</h2>
-    <div id="authError" class="hidden" style="color: red; margin-bottom: 10px; font-size: 13px;"></div>
+    <h2 style="margin-bottom: 24px; font-weight: 700; font-size: 24px;">Inventory System</h2>
+    <div id="authError" class="hidden" style="color: red; margin-bottom: 16px; font-size: 13px;"></div>
     
     <div id="loginBox">
       <form id="loginForm">
         <input type="email" id="loginEmail" placeholder="Email" required>
         <input type="password" id="loginPass" placeholder="Password" required>
-        <button type="submit" class="btn-primary" style="width: 100%;">Login</button>
-        <p style="margin-top:15px; font-size:13px; color: var(--text-muted);">Belum punya akun? <a href="#" onclick="toggleAuth('register'); return false;" style="color:var(--primary); font-weight:600;">Daftar</a></p>
+        <button type="submit" class="btn-primary" style="width: 100%; margin-top: 8px;">Login</button>
+        <p style="margin-top:20px; font-size:14px; color: var(--text-muted);">Belum punya akun? <a href="#" onclick="toggleAuth('register'); return false;" style="color:var(--primary); font-weight:600;">Daftar</a></p>
       </form>
     </div>
     
@@ -32,8 +32,8 @@
         <input type="text" id="regNama" placeholder="Nama Lengkap" required>
         <input type="email" id="regEmail" placeholder="Email" required>
         <input type="password" id="regPass" placeholder="Password (min 6)" required minlength="6">
-        <button type="submit" class="btn-primary" style="width: 100%;">Daftar Akun</button>
-        <p style="margin-top:15px; font-size:13px; color: var(--text-muted);">Sudah punya akun? <a href="#" onclick="toggleAuth('login'); return false;" style="color:var(--primary); font-weight:600;">Login</a></p>
+        <button type="submit" class="btn-primary" style="width: 100%; margin-top: 8px;">Daftar Akun</button>
+        <p style="margin-top:20px; font-size:14px; color: var(--text-muted);">Sudah punya akun? <a href="#" onclick="toggleAuth('login'); return false;" style="color:var(--primary); font-weight:600;">Login</a></p>
       </form>
     </div>
   </div>
@@ -47,8 +47,8 @@
   <!-- SIDEBAR -->
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-brand">
-      <div class="brand-logo-placeholder" style="width: 32px; height: 32px; background: var(--border); border-radius: 8px; flex-shrink: 0;"></div>
-      <img id="sidebarLogoImg" class="brand-logo" src="" alt="Logo" style="display: none; object-fit: cover; flex-shrink: 0; border-radius: 8px; width: 32px; height: 32px;">
+      <div class="brand-logo-placeholder" style="width: 36px; height: 36px; background: var(--border); border-radius: 10px; flex-shrink: 0;"></div>
+      <img id="sidebarLogoImg" class="brand-logo" src="" alt="Logo" style="display: none; object-fit: cover; flex-shrink: 0; border-radius: 10px; width: 36px; height: 36px;">
       
       <div class="brand-text">
         <strong id="sidebarBrandName">Inventory</strong>
@@ -95,7 +95,7 @@
       <div class="topbar-left">
         <button class="hamburger" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
         <div class="search-bar">
-          <i class="fa-solid fa-magnifying-glass"></i>
+          <i class="fa-solid fa-magnifying-glass text-muted"></i>
           <input type="text" id="globalSearch" placeholder="Cari SKU / Nama Produk..." onkeyup="filterTable()">
         </div>
       </div>
@@ -108,8 +108,8 @@
         <div class="profile-dropdown-container">
           <div class="user-profile" onclick="toggleProfileMenu(event)">
             <span id="userNameDisplay">Admin</span>
-            <div class="avatar-placeholder" style="width: 28px; height: 28px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold;">A</div>
-            <img id="userAvatarImg" class="avatar" src="" alt="Avatar" style="display: none; object-fit: cover; width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;">
+            <div class="avatar-placeholder" style="width: 32px; height: 32px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold;">A</div>
+            <img id="userAvatarImg" class="avatar" src="" alt="Avatar" style="display: none; object-fit: cover; width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;">
           </div>
           <div class="dropdown-menu hidden" id="profileDropdown">
             <a href="#" class="dropdown-item" onclick="showPage('settings', document.querySelectorAll('.sidebar-footer a')[0]); toggleProfileMenu(event); return false;">
@@ -127,9 +127,9 @@
       
       <!-- DASHBOARD -->
       <div id="page-dashboard" class="page-view">
-        <div class="page-header-flex" style="margin-bottom: 24px;">
+        <div class="page-header-flex">
           <div>
-            <h2 style="font-size: 24px; font-weight: 700; margin-bottom: 4px;">Dashboard</h2>
+            <h2 class="page-title" style="margin-bottom: 4px;">Dashboard</h2>
             <p style="color: var(--text-muted); font-size: 14px;">Ringkasan inventaris dan aktivitas gudang Anda.</p>
           </div>
         </div>
@@ -137,7 +137,7 @@
         <!-- BENTO GRID LAYOUT -->
         <div class="bento-grid">
           
-          <!-- Featured Card (Biru) -->
+          <!-- Featured Card (Total Nilai Aset) -->
           <div class="bento-card featured-card">
             <div class="featured-content">
               <div class="icon-box-glass"><i class="fa-solid fa-wallet"></i></div>
@@ -149,7 +149,7 @@
             </div>
           </div>
 
-          <!-- Stat Cards -->
+          <!-- Stat Cards (Total SKU & Stok Menipis) -->
           <div class="bento-card stat-card">
             <div class="stat-icon blue"><i class="fa-solid fa-cube"></i></div>
             <div class="stat-details">
@@ -166,16 +166,16 @@
             </div>
           </div>
 
-          <!-- Chart Card -->
+          <!-- Chart Card (Kiri Bawah) -->
           <div class="bento-card chart-card">
             <div class="card-header">
-              <h3>Stok per Kategori</h3>
+              <h3>Top 5 Stok Terbanyak</h3>
               <i class="fa-solid fa-ellipsis text-muted"></i>
             </div>
             <div class="chart-container"><canvas id="dashboardChart"></canvas></div>
           </div>
 
-          <!-- Recent Activity Table -->
+          <!-- Recent Activity Table (Kanan Bawah) -->
           <div class="bento-card table-card">
             <div class="card-header">
               <h3>Aktivitas Terakhir</h3>
@@ -207,16 +207,16 @@
               <input type="text" id="settingUsername" placeholder="Cth: Diva Prawira" required>
             </div>
             
-            <div class="form-group" style="background: var(--bg-main); padding: 15px; border-radius: 12px; border: 1px solid var(--border);">
+            <div class="form-group" style="background: var(--bg-main); padding: 16px; border-radius: var(--radius-md); border: 1px dashed var(--border);">
               <label>Ganti Logo Perusahaan (Opsional)</label>
-              <input type="file" id="inputLogo" accept="image/*" style="margin-top: 8px;">
-              <img id="previewLogo" src="" alt="Preview Logo" style="display: none; max-width: 100px; max-height: 100px; margin-top: 10px; border-radius: 8px; object-fit: contain; border: 1px solid var(--border); background: white;">
+              <input type="file" id="inputLogo" accept="image/*" style="margin-top: 8px; border: none; padding: 0;">
+              <img id="previewLogo" src="" alt="Preview Logo" style="display: none; max-width: 100px; max-height: 100px; margin-top: 12px; border-radius: 8px; object-fit: contain; border: 1px solid var(--border); background: white;">
             </div>
 
-            <div class="form-group" style="background: var(--bg-main); padding: 15px; border-radius: 12px; border: 1px solid var(--border);">
+            <div class="form-group" style="background: var(--bg-main); padding: 16px; border-radius: var(--radius-md); border: 1px dashed var(--border);">
               <label>Ganti Foto Profil (Opsional)</label>
-              <input type="file" id="inputAvatar" accept="image/*" style="margin-top: 8px;">
-              <img id="previewAvatar" src="" alt="Preview Avatar" style="display: none; width: 80px; height: 80px; margin-top: 10px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border); background: white;">
+              <input type="file" id="inputAvatar" accept="image/*" style="margin-top: 8px; border: none; padding: 0;">
+              <img id="previewAvatar" src="" alt="Preview Avatar" style="display: none; width: 80px; height: 80px; margin-top: 12px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border); background: white;">
             </div>
 
             <button type="submit" class="btn-primary"><i class="fa-solid fa-floppy-disk"></i> Simpan Pengaturan</button>
