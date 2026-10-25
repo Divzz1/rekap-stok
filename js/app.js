@@ -3,6 +3,7 @@ import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 /* ============================================================
    ⚠️ GANTI DENGAN KREDENSIAL SUPABASE ANDA
    ============================================================ */
+
 const SUPABASE_URL = 'https://vggxtpyduiiaazoloylx.supabase.co/';
 const SUPABASE_ANON_KEY = 'sb_publishable_kQifdwQIic-ycFJBLPa8Og_TvOSw13Z';
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -100,6 +101,41 @@ window.filterTable = () => {
 };
 
 /* =========================================
+   DARK MODE
+========================================= */
+window.toggleDarkMode = () => {
+  const html = document.documentElement;
+  const icon = document.getElementById('themeIcon');
+  
+  if (html.getAttribute('data-theme') === 'dark') {
+    html.removeAttribute('data-theme');
+    icon.classList.remove('fa-sun');
+    icon.classList.add('fa-moon');
+    localStorage.setItem('theme', 'light');
+  } else {
+    html.setAttribute('data-theme', 'dark');
+    icon.classList.remove('fa-moon');
+    icon.classList.add('fa-sun');
+    localStorage.setItem('theme', 'dark');
+  }
+  
+  // Re-render chart agar warna teksnya menyesuaikan mode
+  if(document.getElementById('page-dashboard').classList.contains('hidden') === false) {
+    loadDashboard();
+  }
+};
+
+// Cek memori tema saat web dimuat
+if (localStorage.getItem('theme') === 'dark') {
+  document.documentElement.setAttribute('data-theme', 'dark');
+  // Ubah icon saat dimuat
+  document.addEventListener("DOMContentLoaded", () => {
+    const icon = document.getElementById('themeIcon');
+    if(icon) { icon.classList.remove('fa-moon'); icon.classList.add('fa-sun'); }
+  });
+}
+
+/* =========================================
    AUTHENTICATION
 ========================================= */
 document.getElementById('loginForm').addEventListener('submit', async (e) => {
@@ -178,7 +214,7 @@ function updateUIProfile(data) {
     avatarPlaceholder.style.display = 'none';
   } else {
     avatarImg.style.display = 'none';
-    avatarPlaceholder.style.display = 'block';
+    avatarPlaceholder.style.display = 'flex'; // Pakai flex agar huruf di tengah
   }
 
   // Set Logo
@@ -306,10 +342,40 @@ async function loadDashboard() {
     
     if (chartInstance) chartInstance.destroy();
     const ctx = document.getElementById('dashboardChart').getContext('2d');
+    
+    // Cek dark mode untuk warna teks chart
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const textColor = isDark ? '#94a3b8' : '#64748b';
+
     chartInstance = new Chart(ctx, {
       type: 'bar',
-      data: { labels: labels, datasets: [{ label: 'Sisa Stok', data: dataStok, backgroundColor: '#3b82f6', borderRadius: 6 }] },
-      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+      data: { 
+        labels: labels, 
+        datasets: [{ 
+          label: 'Sisa Stok', 
+          data: dataStok, 
+          backgroundColor: '#2563eb', 
+          borderRadius: 6,
+          barThickness: 'flex',
+          maxBarThickness: 40
+        }] 
+      },
+      options: { 
+        responsive: true, 
+        maintainAspectRatio: false, 
+        plugins: { legend: { display: false } },
+        scales: {
+          y: {
+            beginAtZero: true,
+            grid: { display: false, drawBorder: false },
+            ticks: { color: textColor }
+          },
+          x: {
+            grid: { display: false, drawBorder: false },
+            ticks: { color: textColor }
+          }
+        }
+      }
     });
   }
 
@@ -322,9 +388,12 @@ async function loadDashboard() {
   
   history.sort((a,b) => new Date(b.tgl) - new Date(a.tgl));
   document.getElementById('dashHistoryTable').innerHTML = history.slice(0,5).map(h => `
-    <tr><td>${new Date(h.tgl).toLocaleDateString('id-ID')}</td>
-        <td><span class="badge ${h.tipe === 'Masuk' ? 'success' : 'warning'}">${h.tipe}</span></td>
-        <td>${h.nama || '-'}</td><td>${h.qty}</td></tr>
+    <tr>
+      <td>${new Date(h.tgl).toLocaleDateString('id-ID', {day: '2-digit', month: 'short'})}</td>
+      <td><span class="badge ${h.tipe === 'Masuk' ? 'success' : 'warning'}">${h.tipe}</span></td>
+      <td>${h.nama || '-'}</td>
+      <td class="text-right"><b>${h.qty}</b></td>
+    </tr>
   `).join('') || '<tr><td colspan="4" align="center">Belum ada aktivitas</td></tr>';
 }
 
