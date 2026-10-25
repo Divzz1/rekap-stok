@@ -1,9 +1,5 @@
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 
-/* ============================================================
-   ⚠️ GANTI DENGAN KREDENSIAL SUPABASE ANDA
-   ============================================================ */
-
 const SUPABASE_URL = 'https://vggxtpyduiiaazoloylx.supabase.co/';
 const SUPABASE_ANON_KEY = 'sb_publishable_kQifdwQIic-ycFJBLPa8Og_TvOSw13Z';
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -119,16 +115,13 @@ window.toggleDarkMode = () => {
     localStorage.setItem('theme', 'dark');
   }
   
-  // Re-render chart agar warna teksnya menyesuaikan mode
   if(document.getElementById('page-dashboard').classList.contains('hidden') === false) {
     loadDashboard();
   }
 };
 
-// Cek memori tema saat web dimuat
 if (localStorage.getItem('theme') === 'dark') {
   document.documentElement.setAttribute('data-theme', 'dark');
-  // Ubah icon saat dimuat
   document.addEventListener("DOMContentLoaded", () => {
     const icon = document.getElementById('themeIcon');
     if(icon) { icon.classList.remove('fa-moon'); icon.classList.add('fa-sun'); }
@@ -205,7 +198,6 @@ function updateUIProfile(data) {
   const footerLogo = document.getElementById('footerBrandLogoText');
   if(footerLogo) footerLogo.textContent = data.nama_perusahaan || 'Inventory';
 
-  // Set Avatar
   const avatarImg = document.getElementById('userAvatarImg');
   const avatarPlaceholder = document.querySelector('.avatar-placeholder');
   if (data.avatar_url) {
@@ -214,10 +206,9 @@ function updateUIProfile(data) {
     avatarPlaceholder.style.display = 'none';
   } else {
     avatarImg.style.display = 'none';
-    avatarPlaceholder.style.display = 'flex'; // Pakai flex agar huruf di tengah
+    avatarPlaceholder.style.display = 'flex'; 
   }
 
-  // Set Logo
   const logoImg = document.getElementById('sidebarLogoImg');
   const logoPlaceholder = document.querySelector('.brand-logo-placeholder');
   if (data.logo_url) {
@@ -343,7 +334,6 @@ async function loadDashboard() {
     if (chartInstance) chartInstance.destroy();
     const ctx = document.getElementById('dashboardChart').getContext('2d');
     
-    // Cek dark mode untuk warna teks chart
     const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
     const textColor = isDark ? '#94a3b8' : '#64748b';
 
@@ -357,22 +347,28 @@ async function loadDashboard() {
           backgroundColor: '#2563eb', 
           borderRadius: 6,
           barThickness: 'flex',
-          maxBarThickness: 40
+          maxBarThickness: 35
         }] 
       },
       options: { 
         responsive: true, 
         maintainAspectRatio: false, 
+        layout: { padding: { bottom: 10 } }, // Padding ekstra agar label bawah tidak terpotong
         plugins: { legend: { display: false } },
         scales: {
           y: {
             beginAtZero: true,
             grid: { display: false, drawBorder: false },
-            ticks: { color: textColor }
+            ticks: { color: textColor, font: { family: 'Inter' } }
           },
           x: {
             grid: { display: false, drawBorder: false },
-            ticks: { color: textColor }
+            ticks: { 
+              color: textColor, 
+              font: { family: 'Inter', size: 11 },
+              maxRotation: 45,
+              minRotation: 45
+            }
           }
         }
       }
@@ -418,7 +414,7 @@ window.tambahKeTabelSementara = async () => {
 function renderTempStok() {
   const tbody = document.getElementById('tempStokTable');
   if (tempStokData.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 20px;">Belum ada barang.</td></tr>'; return;
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 24px;">Belum ada barang.</td></tr>'; return;
   }
   tbody.innerHTML = tempStokData.map((item, index) => `
     <tr>
@@ -567,7 +563,7 @@ async function loadProducts() {
   
   tbody.innerHTML = data.map(p => `
     <tr>
-      <td>${p.sku}</td><td>${p.nama}</td><td>${p.lokasi || '-'}</td>
+      <td><b>${p.sku}</b></td><td>${p.nama}</td><td>${p.lokasi || '-'}</td>
       <td><span class="badge ${p.status === 'Tersedia' ? 'success' : 'danger'}">${p.status}</span></td>
       <td>${p.stok}</td><td>Rp ${p.harga_jual.toLocaleString('id-ID')}</td>
       <td>
@@ -588,7 +584,7 @@ async function loadStokPage() {
   const tbody = document.getElementById('tableStok');
   const { data } = await supabase.from('products').select('sku, nama, lokasi, stok').order('stok', { ascending: true });
   if (!data || data.length === 0) { tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Belum ada stok.</td></tr>'; return; }
-  tbody.innerHTML = data.map(p => `<tr><td>${p.sku}</td><td>${p.nama}</td><td>${p.lokasi || '-'}</td><td><b>${p.stok}</b></td></tr>`).join('');
+  tbody.innerHTML = data.map(p => `<tr><td><b>${p.sku}</b></td><td>${p.nama}</td><td>${p.lokasi || '-'}</td><td><b>${p.stok}</b></td></tr>`).join('');
 }
 
 async function loadHistory() {
@@ -614,7 +610,7 @@ async function loadHistory() {
 }
 
 /* =========================================
-   EXPORT HISTORY TO EXCEL (DENGAN STYLING)
+   EXPORT HISTORY TO EXCEL
 ========================================= */
 window.exportHistoryToExcel = async () => {
   const { data: ins } = await supabase.from('purchase_orders').select('*, po_items(jumlah, products(nama))');
