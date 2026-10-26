@@ -228,7 +228,15 @@
       <div id="page-inputMasuk" class="page-view hidden">
         <h2 class="page-title">Input Barang Masuk (PO)</h2>
         <div class="bento-card input-stok-header">
-          <div class="form-inline"><label>SKU Produk</label><input type="text" id="inputSkuCepat" placeholder="Ketik SKU (Cth: PRD-001)"></div>
+          
+          <!-- DROPDOWN PRODUK BARU -->
+          <div class="form-inline" style="flex: 2;">
+            <label>Pilih Produk</label>
+            <select id="inProdukId" required>
+              <option value="">Memuat produk...</option>
+            </select>
+          </div>
+          
           <div class="form-inline"><label>Jumlah Masuk</label><input type="number" id="inputJmlCepat" placeholder="0" min="1"></div>
           <div class="form-inline"><label>Harga Beli</label><input type="number" id="inputHargaCepat" placeholder="Rp"></div>
           <button class="btn-primary" onclick="tambahKeTabelSementara()"><i class="fa-solid fa-cart-plus"></i> Tambah</button>
