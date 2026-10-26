@@ -40,7 +40,7 @@ window.toggleAuth = (type) => {
   document.getElementById('registerBox').classList.toggle('hidden', type === 'login');
 };
 
-window.showPage = (pageId, el) => {
+window.showPage = async (pageId, el) => {
   showLoader();
   if (window.innerWidth <= 1024) {
     document.getElementById('sidebar').classList.remove('open');
@@ -49,7 +49,7 @@ window.showPage = (pageId, el) => {
   document.querySelectorAll('.page-view').forEach(v => v.classList.add('hidden'));
   const target = document.getElementById(`page-${pageId}`);
   
-  setTimeout(() => {
+  setTimeout(async () => {
     if (target) {
       target.classList.remove('hidden');
       target.style.animation = 'none';
@@ -60,19 +60,24 @@ window.showPage = (pageId, el) => {
     if (el) el.classList.add('active');
     document.getElementById('globalSearch').value = '';
 
-    if (pageId === 'dashboard') loadDashboard();
-    if (pageId === 'laporanAset') loadLaporanAset();
-    if (pageId.startsWith('master') && pageId !== 'masterProduk') loadMasterData(pageId.replace('master', '').toLowerCase());
-    if (pageId === 'masterProduk') loadProducts();
-    if (pageId === 'stok') loadStokPage();
-    if (pageId === 'history') loadHistory();
-    if (pageId === 'settings') loadSettingsData();
-    if (pageId === 'inputMasuk') loadDropdownProdukMasuk(); 
-    if (pageId === 'inputKeluar') {
-      loadDropdownProduk();
-      document.getElementById('outTanggal').value = new Date().toISOString().split('T')[0];
+    try {
+      if (pageId === 'dashboard') await loadDashboard();
+      if (pageId === 'laporanAset') await loadLaporanAset();
+      if (pageId.startsWith('master') && pageId !== 'masterProduk') await loadMasterData(pageId.replace('master', '').toLowerCase());
+      if (pageId === 'masterProduk') await loadProducts();
+      if (pageId === 'stok') await loadStokPage();
+      if (pageId === 'history') await loadHistory();
+      if (pageId === 'settings') await loadSettingsData();
+      if (pageId === 'inputMasuk') await loadDropdownProdukMasuk(); 
+      if (pageId === 'inputKeluar') {
+        await loadDropdownProduk();
+        document.getElementById('outTanggal').value = new Date().toISOString().split('T')[0];
+      }
+    } catch (err) {
+      console.error("Error loading page:", err);
+    } finally {
+      hideLoader();
     }
-    hideLoader();
   }, 300);
 };
 
@@ -93,6 +98,7 @@ window.filterTable = () => {
 
 /* ANIMASI ANGKA */
 function animateValue(obj, start, end, duration, isRupiah = false) {
+  if(!obj) return;
   let startTimestamp = null;
   const step = (timestamp) => {
     if (!startTimestamp) startTimestamp = timestamp;
@@ -111,7 +117,7 @@ window.toggleDarkMode = () => {
   const html = document.documentElement; const icon = document.getElementById('themeIcon');
   if (html.getAttribute('data-theme') === 'dark') { html.removeAttribute('data-theme'); icon.classList.remove('fa-sun'); icon.classList.add('fa-moon'); localStorage.setItem('theme', 'light'); } 
   else { html.setAttribute('data-theme', 'dark'); icon.classList.remove('fa-moon'); icon.classList.add('fa-sun'); localStorage.setItem('theme', 'dark'); }
-  if(document.getElementById('page-dashboard').classList.contains('hidden') === false) loadDashboard();
+  if(document.getElementById('page-dashboard').classList.contains('hidden') === false) loadDashboard().catch(e=>console.log(e));
 };
 if (localStorage.getItem('theme') === 'dark') {
   document.documentElement.setAttribute('data-theme', 'dark');
@@ -139,13 +145,17 @@ async function initApp(user) {
   document.getElementById('appScreen').classList.remove('hidden');
   document.getElementById('year').textContent = new Date().getFullYear();
   
-  let { data } = await supabase.from('profiles').select('*').eq('id', user.id).maybeSingle();
-  if (!data) {
-    const defaultNama = user.email.split('@')[0];
-    const { data: newData } = await supabase.from('profiles').upsert({ id: user.id, nama: defaultNama, nama_perusahaan: 'Inventory' }).select().single();
-    data = newData;
+  try {
+    let { data } = await supabase.from('profiles').select('*').eq('id', user.id).maybeSingle();
+    if (!data) {
+      const defaultNama = user.email.split('@')[0];
+      const { data: newData } = await supabase.from('profiles').upsert({ id: user.id, nama: defaultNama, nama_perusahaan: 'Inventory' }).select().single();
+      data = newData;
+    }
+    updateUIProfile(data);
+  } catch (error) {
+    console.error("Error fetching profile:", error);
   }
-  updateUIProfile(data);
   
   const firstGroup = document.querySelector('.menu-group');
   if(firstGroup) toggleSubmenu(firstGroup.querySelector('.menu-item'));
@@ -217,11 +227,16 @@ document.getElementById('formSettings').addEventListener('submit', async (e) => 
   } catch (error) { alert('Gagal menyimpan: ' + error.message); } finally { btn.innerHTML = originalText; btn.disabled = false; }
 });
 
-/* LOGIKA DASHBOARD (LABA BERSIH) */
+/* DASHBOARD */
 async function loadDashboard() {
   const { data: products } = await supabase.from('products').select('*').order('nama').limit(5);
-  const { data: allProducts } = await supabase.from('products').select('stok, harga_jual, harga_beli');
+  const { data: allProducts, error } = await supabase.from('products').select('stok, harga_jual, harga_beli');
   
+  if (error) {
+    // Jika kolom harga_beli belum ada, tetap jalankan animasi tanpa crash
+    console.error("Gagal ambil harga_beli, pastikan SQL sudah dijalankan.", error);
+  }
+
   if (allProducts) {
     let totalLaba = 0;
     allProducts.forEach(p => {
@@ -263,7 +278,7 @@ async function loadDashboard() {
   `).join('') || '<tr><td colspan="4" align="center">Belum ada aktivitas</td></tr>';
 }
 
-/* LOGIKA LAPORAN ASET */
+/* LAPORAN ASET */
 async function loadLaporanAset() {
   const tbody = document.getElementById('tableLaporanAset');
   const { data } = await supabase.from('products').select('*').order('nama');
@@ -304,7 +319,7 @@ async function loadLaporanAset() {
   animateValue(document.getElementById('statTotalLaba'), 0, totalLaba, 1000, true);
 }
 
-/* BARANG MASUK (PO) - FITUR DROPDOWN & AUTO HARGA BELI */
+/* BARANG MASUK (PO) */
 async function loadDropdownProdukMasuk() {
   const select = document.getElementById('inProdukId');
   if (!select) return;
@@ -354,7 +369,7 @@ function renderTempStok() {
   if (tempStokData.length === 0) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 24px;">Belum ada barang.</td></tr>'; return; }
   tbody.innerHTML = tempStokData.map((item, index) => `
     <tr><td><b>${item.sku}</b></td><td>${item.nama}</td><td>${item.lokasi || '-'}</td><td>${item.jumlahBeli}</td><td>Rp ${item.hargaBeli.toLocaleString('id-ID')}</td>
-    <td><button class="btn-sm red" onclick="hapusTempStok(${index})"><i class="fa-solid fa-trash"></i></button></td></tr>
+    <td><button type="button" class="btn-sm red" onclick="hapusTempStok(${index})"><i class="fa-solid fa-trash"></i></button></td></tr>
   `).join('');
 }
 
@@ -421,7 +436,7 @@ async function loadMasterData(tipe) {
   if (!tbody) return;
   const { data } = await supabase.from('master_data').select('*').eq('tipe', tipe).order('nama');
   if (!data || data.length === 0) { tbody.innerHTML = `<tr><td colspan="3" style="text-align:center;">Belum ada data.</td></tr>`; return; }
-  tbody.innerHTML = data.map((d, i) => `<tr><td>${i+1}.</td><td>${d.nama}</td><td><button class="btn-sm red" onclick="hapusMaster(${d.id}, '${tipe}')">Hapus</button></td></tr>`).join('');
+  tbody.innerHTML = data.map((d, i) => `<tr><td>${i+1}.</td><td>${d.nama}</td><td><button type="button" class="btn-sm red" onclick="hapusMaster(${d.id}, '${tipe}')">Hapus</button></td></tr>`).join('');
 }
 window.hapusMaster = async (id, tipe) => { if (!confirm('Hapus data ini?')) return; await supabase.from('master_data').delete().eq('id', id); loadMasterData(tipe); };
 
@@ -481,8 +496,8 @@ async function loadProducts() {
       <td>Rp ${(p.harga_beli || 0).toLocaleString('id-ID')}</td>
       <td>Rp ${(p.harga_jual || 0).toLocaleString('id-ID')}</td>
       <td>
-        <button class="btn-sm outline" onclick="bukaDetailProduk(${p.id})"><i class="fa-solid fa-pen"></i></button>
-        <button class="btn-sm red" onclick="hapusProduk(${p.id})"><i class="fa-solid fa-trash"></i></button>
+        <button type="button" class="btn-sm outline" onclick="bukaDetailProduk(${p.id})"><i class="fa-solid fa-pen"></i></button>
+        <button type="button" class="btn-sm red" onclick="hapusProduk(${p.id})"><i class="fa-solid fa-trash"></i></button>
       </td>
     </tr>
   `).join('');
