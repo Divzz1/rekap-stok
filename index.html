@@ -12,7 +12,7 @@
 </head>
 <body>
 
-<!-- SPLASH SCREEN ANIMASI -->
+<!-- SPLASH SCREEN -->
 <div id="splashScreen">
   <div class="splash-logo"><i class="fa-solid fa-cube"></i></div>
   <h2 class="splash-text">Inventory System</h2>
@@ -61,36 +61,34 @@
     
     <nav class="sidebar-menu">
       <p class="menu-label">MENU</p>
-      <a href="#" class="menu-item active" onclick="showPage('dashboard', this)"><i class="fa-solid fa-border-all"></i> Dashboard</a>
+      <a href="#" class="menu-item active" onclick="showPage('dashboard', this); return false;"><i class="fa-solid fa-border-all"></i> Dashboard</a>
       
       <div class="menu-group">
         <div class="menu-item" onclick="toggleSubmenu(this)"><i class="fa-solid fa-box"></i> Inventory <i class="fa-solid fa-chevron-down arrow"></i></div>
         <div class="submenu">
-          <a href="#" onclick="showPage('inputMasuk', this)">Barang Masuk (PO)</a>
-          <a href="#" onclick="showPage('inputKeluar', this)">Barang Keluar</a>
-          <a href="#" id="nav-stok" onclick="showPage('stok', this)">Data Stok</a>
+          <a href="#" onclick="showPage('inputMasuk', this); return false;">Barang Masuk (PO)</a>
+          <a href="#" onclick="showPage('inputKeluar', this); return false;">Barang Keluar</a>
+          <a href="#" id="nav-stok" onclick="showPage('stok', this); return false;">Data Stok</a>
         </div>
       </div>
 
       <div class="menu-group">
         <div class="menu-item" onclick="toggleSubmenu(this)"><i class="fa-solid fa-cubes"></i> Master Data <i class="fa-solid fa-chevron-down arrow"></i></div>
         <div class="submenu">
-          <a href="#" id="nav-produk" onclick="showPage('masterProduk', this)">Produk</a>
-          <a href="#" onclick="showPage('masterMerk', this)">Merk</a>
-          <a href="#" onclick="showPage('masterJenis', this)">Jenis</a>
-          <a href="#" onclick="showPage('masterUkuran', this)">Ukuran</a>
-          <a href="#" onclick="showPage('masterLokasi', this)">Lokasi</a>
+          <a href="#" id="nav-produk" onclick="showPage('masterProduk', this); return false;">Produk</a>
+          <a href="#" onclick="showPage('masterMerk', this); return false;">Merk</a>
+          <a href="#" onclick="showPage('masterJenis', this); return false;">Jenis</a>
+          <a href="#" onclick="showPage('masterUkuran', this); return false;">Ukuran</a>
+          <a href="#" onclick="showPage('masterLokasi', this); return false;">Lokasi</a>
         </div>
       </div>
 
-      <!-- MENU LAPORAN ASET -->
-      <a href="#" id="nav-laporanAset" class="menu-item" onclick="showPage('laporanAset', this)"><i class="fa-solid fa-chart-pie"></i> Laporan Aset</a>
-      
-      <a href="#" class="menu-item" onclick="showPage('history', this)"><i class="fa-solid fa-clock-rotate-left"></i> History Transaksi</a>
+      <a href="#" id="nav-laporanAset" class="menu-item" onclick="showPage('laporanAset', this); return false;"><i class="fa-solid fa-chart-pie"></i> Laporan Aset</a>
+      <a href="#" class="menu-item" onclick="showPage('history', this); return false;"><i class="fa-solid fa-clock-rotate-left"></i> History Transaksi</a>
     </nav>
     
     <div class="sidebar-footer">
-      <a href="#" class="menu-item" onclick="showPage('settings', this)"><i class="fa-solid fa-gear"></i> Settings</a>
+      <a href="#" class="menu-item" onclick="showPage('settings', this); return false;"><i class="fa-solid fa-gear"></i> Settings</a>
       <a href="#" class="menu-item text-danger" onclick="logout()"><i class="fa-solid fa-arrow-right-from-bracket"></i> Log Out</a>
     </div>
   </aside>
@@ -99,14 +97,14 @@
   <main class="main-content">
     <header class="topbar">
       <div class="topbar-left">
-        <button class="hamburger" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
+        <button type="button" class="hamburger" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
         <div class="search-bar">
           <i class="fa-solid fa-magnifying-glass text-muted"></i>
           <input type="text" id="globalSearch" placeholder="Cari SKU / Nama Produk..." onkeyup="filterTable()">
         </div>
       </div>
       <div class="topbar-right">
-        <button class="icon-btn" onclick="toggleDarkMode()" title="Ganti Tema"><i class="fa-solid fa-moon" id="themeIcon"></i></button>
+        <button type="button" class="icon-btn" onclick="toggleDarkMode()" title="Ganti Tema"><i class="fa-solid fa-moon" id="themeIcon"></i></button>
         <div class="profile-dropdown-container">
           <div class="user-profile" onclick="toggleProfileMenu(event)">
             <span id="userNameDisplay">Admin</span>
@@ -133,7 +131,6 @@
         </div>
 
         <div class="bento-grid">
-          <!-- KARTU 1: KLIK KE LAPORAN ASET -->
           <div class="bento-card featured-card" style="cursor: pointer;" onclick="document.getElementById('nav-laporanAset').click()" title="Lihat Rincian Laporan Aset">
             <div class="featured-content">
               <div class="icon-box-glass"><i class="fa-solid fa-chart-line"></i></div>
@@ -145,13 +142,11 @@
             </div>
           </div>
 
-          <!-- KARTU 2: KLIK KE MASTER PRODUK -->
           <div class="bento-card stat-card" style="cursor: pointer;" onclick="document.getElementById('nav-produk').click()" title="Lihat Master Produk">
             <div class="stat-icon blue"><i class="fa-solid fa-cube"></i></div>
             <div class="stat-details"><span>Total SKU</span><h3 id="statTotalProduk">0</h3></div>
           </div>
 
-          <!-- KARTU 3: KLIK KE DATA STOK -->
           <div class="bento-card stat-card" style="cursor: pointer;" onclick="document.getElementById('nav-stok').click()" title="Lihat Stok Menipis">
             <div class="stat-icon red"><i class="fa-solid fa-triangle-exclamation"></i></div>
             <div class="stat-details"><span>Stok Menipis</span><h3 id="statLowStok">0</h3></div>
@@ -186,24 +181,15 @@
         <div class="report-grid">
           <div class="report-card">
             <div class="stat-icon" style="background: #fef3c7; color: #d97706;"><i class="fa-solid fa-wallet"></i></div>
-            <div class="stat-details">
-              <span>Total Modal Tertahan</span>
-              <h3 id="statTotalModal">Rp 0</h3>
-            </div>
+            <div class="stat-details"><span>Total Modal Tertahan</span><h3 id="statTotalModal">Rp 0</h3></div>
           </div>
           <div class="report-card">
             <div class="stat-icon blue"><i class="fa-solid fa-money-bill-trend-up"></i></div>
-            <div class="stat-details">
-              <span>Total Potensi Jual</span>
-              <h3 id="statTotalOmzet">Rp 0</h3>
-            </div>
+            <div class="stat-details"><span>Total Potensi Jual</span><h3 id="statTotalOmzet">Rp 0</h3></div>
           </div>
           <div class="report-card">
             <div class="stat-icon" style="background: #dcfce7; color: #16a34a;"><i class="fa-solid fa-sack-dollar"></i></div>
-            <div class="stat-details">
-              <span>Estimasi Laba Bersih</span>
-              <h3 id="statTotalLaba" style="color: #16a34a;">Rp 0</h3>
-            </div>
+            <div class="stat-details"><span>Estimasi Laba Bersih</span><h3 id="statTotalLaba" style="color: #16a34a;">Rp 0</h3></div>
           </div>
         </div>
 
@@ -244,7 +230,7 @@
         </div>
       </div>
 
-      <!-- BARANG MASUK (PO) - FITUR DROPDOWN -->
+      <!-- BARANG MASUK (PO) -->
       <div id="page-inputMasuk" class="page-view hidden">
         <h2 class="page-title">Input Barang Masuk (PO)</h2>
         <div class="bento-card input-stok-header">
@@ -256,7 +242,7 @@
           </div>
           <div class="form-inline"><label>Jumlah Masuk</label><input type="number" id="inputJmlCepat" placeholder="0" min="1"></div>
           <div class="form-inline"><label>Harga Beli (Modal)</label><input type="number" id="inputHargaCepat" placeholder="Rp"></div>
-          <button class="btn-primary" onclick="tambahKeTabelSementara()"><i class="fa-solid fa-cart-plus"></i> Tambah</button>
+          <button type="button" class="btn-primary" onclick="tambahKeTabelSementara()"><i class="fa-solid fa-cart-plus"></i> Tambah</button>
         </div>
         <div class="bento-card mt-20">
           <div class="table-responsive">
@@ -265,7 +251,7 @@
               <tbody id="tempStokTable"></tbody>
             </table>
           </div>
-          <div class="table-footer"><button class="btn-primary" onclick="simpanStokMassal()"><i class="fa-solid fa-floppy-disk"></i> Simpan Transaksi</button></div>
+          <div class="table-footer"><button type="button" class="btn-primary" onclick="simpanStokMassal()"><i class="fa-solid fa-floppy-disk"></i> Simpan Transaksi</button></div>
         </div>
       </div>
 
@@ -287,7 +273,7 @@
       <div id="page-masterProduk" class="page-view hidden">
         <div class="page-header-flex">
           <h2 class="page-title">Master Produk</h2>
-          <button class="btn-primary" onclick="bukaDetailProduk()"><i class="fa-solid fa-plus"></i> Tambah Produk</button>
+          <button type="button" class="btn-primary" onclick="bukaDetailProduk()"><i class="fa-solid fa-plus"></i> Tambah Produk</button>
         </div>
         <div class="bento-card">
           <div class="table-responsive">
@@ -299,21 +285,21 @@
         </div>
       </div>
 
-      <!-- MASTER DYNAMIC (Merk, Jenis, Ukuran, Lokasi) -->
+      <!-- MASTER DYNAMIC -->
       <div id="page-masterMerk" class="page-view hidden">
-        <div class="page-header-flex"><h2 class="page-title">Master Merk</h2><button class="btn-primary" onclick="openModalMaster('merk')"><i class="fa-solid fa-plus"></i> Tambah Merk</button></div>
+        <div class="page-header-flex"><h2 class="page-title">Master Merk</h2><button type="button" class="btn-primary" onclick="openModalMaster('merk')"><i class="fa-solid fa-plus"></i> Tambah Merk</button></div>
         <div class="bento-card"><div class="table-responsive"><table class="data-table"><thead><tr><th>No</th><th>Nama Merk</th><th>Action</th></tr></thead><tbody id="tableMasterMerk"></tbody></table></div></div>
       </div>
       <div id="page-masterJenis" class="page-view hidden">
-        <div class="page-header-flex"><h2 class="page-title">Master Jenis</h2><button class="btn-primary" onclick="openModalMaster('jenis')"><i class="fa-solid fa-plus"></i> Tambah Jenis</button></div>
+        <div class="page-header-flex"><h2 class="page-title">Master Jenis</h2><button type="button" class="btn-primary" onclick="openModalMaster('jenis')"><i class="fa-solid fa-plus"></i> Tambah Jenis</button></div>
         <div class="bento-card"><div class="table-responsive"><table class="data-table"><thead><tr><th>No</th><th>Nama Jenis</th><th>Action</th></tr></thead><tbody id="tableMasterJenis"></tbody></table></div></div>
       </div>
       <div id="page-masterUkuran" class="page-view hidden">
-        <div class="page-header-flex"><h2 class="page-title">Master Ukuran</h2><button class="btn-primary" onclick="openModalMaster('ukuran')"><i class="fa-solid fa-plus"></i> Tambah Ukuran</button></div>
+        <div class="page-header-flex"><h2 class="page-title">Master Ukuran</h2><button type="button" class="btn-primary" onclick="openModalMaster('ukuran')"><i class="fa-solid fa-plus"></i> Tambah Ukuran</button></div>
         <div class="bento-card"><div class="table-responsive"><table class="data-table"><thead><tr><th>No</th><th>Nama Ukuran</th><th>Action</th></tr></thead><tbody id="tableMasterUkuran"></tbody></table></div></div>
       </div>
       <div id="page-masterLokasi" class="page-view hidden">
-        <div class="page-header-flex"><h2 class="page-title">Master Lokasi</h2><button class="btn-primary" onclick="openModalMaster('lokasi')"><i class="fa-solid fa-plus"></i> Tambah Lokasi</button></div>
+        <div class="page-header-flex"><h2 class="page-title">Master Lokasi</h2><button type="button" class="btn-primary" onclick="openModalMaster('lokasi')"><i class="fa-solid fa-plus"></i> Tambah Lokasi</button></div>
         <div class="bento-card"><div class="table-responsive"><table class="data-table"><thead><tr><th>No</th><th>Nama Lokasi</th><th>Action</th></tr></thead><tbody id="tableMasterLokasi"></tbody></table></div></div>
       </div>
 
@@ -327,7 +313,7 @@
       <div id="page-history" class="page-view hidden">
         <div class="page-header-flex">
           <h2 class="page-title">Semua History Transaksi</h2>
-          <button class="btn-primary" onclick="exportHistoryToExcel()"><i class="fa-solid fa-file-excel"></i> Export ke Excel</button>
+          <button type="button" class="btn-primary" onclick="exportHistoryToExcel()"><i class="fa-solid fa-file-excel"></i> Export ke Excel</button>
         </div>
         <div class="bento-card">
           <div class="table-responsive">
@@ -341,7 +327,6 @@
 
     </div> <!-- END CONTENT-AREA -->
 
-    <!-- FOOTER BARU -->
     <footer class="app-footer">
       <div class="footer-left">
         <div class="footer-brand">
