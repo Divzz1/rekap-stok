@@ -1,5 +1,8 @@
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 
+/* ============================================================
+   ⚠️ GANTI DENGAN KREDENSIAL SUPABASE ANDA
+   ============================================================ */
 const SUPABASE_URL = 'https://vggxtpyduiiaazoloylx.supabase.co/';
 const SUPABASE_ANON_KEY = 'sb_publishable_kQifdwQIic-ycFJBLPa8Og_TvOSw13Z';
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -24,7 +27,6 @@ function hideSplash() {
 function showLoader() { document.getElementById('globalLoader').classList.remove('hidden'); }
 function hideLoader() { document.getElementById('globalLoader').classList.add('hidden'); }
 
-// Sembunyikan splash screen setelah 1.5 detik (simulasi loading) atau setelah auth dicek
 window.addEventListener('load', () => {
   setTimeout(hideSplash, 1000); 
 });
@@ -84,7 +86,6 @@ window.showPage = (pageId, el) => {
 
     document.getElementById('globalSearch').value = '';
 
-    // Panggil fungsi load data
     if (pageId === 'dashboard') loadDashboard();
     if (pageId.startsWith('master') && pageId !== 'masterProduk') loadMasterData(pageId.replace('master', '').toLowerCase());
     if (pageId === 'masterProduk') loadProducts();
@@ -97,8 +98,8 @@ window.showPage = (pageId, el) => {
       document.getElementById('outTanggal').value = new Date().toISOString().split('T')[0];
     }
 
-    hideLoader(); // Sembunyikan loader setelah data dimuat (simulasi delay)
-  }, 300); // Delay dikit biar animasi spinner kelihatan
+    hideLoader();
+  }, 300);
 };
 
 window.toggleSubmenu = (element) => {
@@ -132,7 +133,6 @@ function animateValue(obj, start, end, duration, isRupiah = false) {
   const step = (timestamp) => {
     if (!startTimestamp) startTimestamp = timestamp;
     const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-    // Easing outQuart
     const easeProgress = 1 - Math.pow(1 - progress, 4);
     const currentVal = Math.floor(easeProgress * (end - start) + start);
     
@@ -145,7 +145,6 @@ function animateValue(obj, start, end, duration, isRupiah = false) {
     if (progress < 1) {
       window.requestAnimationFrame(step);
     } else {
-      // Pastikan nilai akhir pas
       obj.innerHTML = isRupiah ? 'Rp ' + end.toLocaleString('id-ID') : end;
     }
   };
@@ -286,7 +285,7 @@ function updateUIProfile(data) {
 supabase.auth.getSession().then(({ data: { session } }) => { if (session) initApp(session.user); });
 
 /* =========================================
-   LOGIKA DATA & CRUD (Sama seperti sebelumnya)
+   SETTINGS & UPLOAD IMAGE
 ========================================= */
 async function loadSettingsData() {
   const { data } = await supabase.from('profiles').select('*').eq('id', currentUser.id).single();
@@ -374,6 +373,9 @@ document.getElementById('formSettings').addEventListener('submit', async (e) => 
   }
 });
 
+/* =========================================
+   LOGIKA DATA (DASHBOARD & CRUD)
+========================================= */
 async function loadDashboard() {
   const { data: products } = await supabase.from('products').select('*').order('nama').limit(5);
   const { data: allProducts } = await supabase.from('products').select('stok, harga_jual');
@@ -644,13 +646,44 @@ window.hapusProduk = async (id) => {
   loadProducts(); loadDashboard();
 };
 
+/* =========================================
+   DATA STOK (LOGIKA WARNA MERAH/HIJAU)
+========================================= */
 async function loadStokPage() {
   const tbody = document.getElementById('tableStok');
   const { data } = await supabase.from('products').select('sku, nama, lokasi, stok').order('stok', { ascending: true });
-  if (!data || data.length === 0) { tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Belum ada stok.</td></tr>'; return; }
-  tbody.innerHTML = data.map(p => `<tr><td><b>${p.sku}</b></td><td>${p.nama}</td><td>${p.lokasi || '-'}</td><td><b>${p.stok}</b></td></tr>`).join('');
+  
+  if (!data || data.length === 0) { 
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Belum ada stok.</td></tr>'; 
+    return; 
+  }
+  
+  tbody.innerHTML = data.map(p => {
+    // Cek apakah stok di bawah 10
+    const isLow = p.stok < 10;
+    
+    // Pilih warna badge & ikon
+    const badgeClass = isLow ? 'danger' : 'success';
+    const icon = isLow ? '<i class="fa-solid fa-triangle-exclamation"></i> ' : '<i class="fa-solid fa-check"></i> ';
+    
+    return `
+      <tr>
+        <td><b>${p.sku}</b></td>
+        <td>${p.nama}</td>
+        <td>${p.lokasi || '-'}</td>
+        <td>
+          <span class="badge ${badgeClass}" style="font-size: 13px; padding: 8px 14px;">
+            ${icon} ${p.stok}
+          </span>
+        </td>
+      </tr>
+    `;
+  }).join('');
 }
 
+/* =========================================
+   HISTORY & EXPORT EXCEL
+========================================= */
 async function loadHistory() {
   const tbody = document.getElementById('tableHistory');
   const { data: ins } = await supabase.from('purchase_orders').select('*, po_items(jumlah, products(nama))');
