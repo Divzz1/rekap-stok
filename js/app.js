@@ -385,7 +385,6 @@ async function loadDashboard() {
     allProducts.forEach(p => { nilaiAset += (p.stok * p.harga_jual); });
     const lowStok = allProducts.filter(p => p.stok < 10).length;
     
-    // Panggil animasi counter
     animateValue(document.getElementById('statTotalProduk'), 0, allProducts.length, 1000);
     animateValue(document.getElementById('statLowStok'), 0, lowStok, 1000);
     animateValue(document.getElementById('statNilaiAset'), 0, nilaiAset, 1500, true);
@@ -442,11 +441,40 @@ async function loadDashboard() {
 async function loadDropdownProdukMasuk() {
   const select = document.getElementById('inProdukId');
   if (!select) return;
-  const { data } = await supabase.from('products').select('id, sku, nama, stok').order('nama');
-  if (!data || data.length === 0) { select.innerHTML = '<option value="">Belum ada produk di Master Data</option>'; return; }
+  
+  // Ambil juga harga_jual
+  const { data } = await supabase.from('products').select('id, sku, nama, stok, harga_jual').order('nama');
+  if (!data || data.length === 0) { 
+    select.innerHTML = '<option value="">Belum ada produk di Master Data</option>'; 
+    return; 
+  }
+  
   select.innerHTML = '<option value="">-- Pilih Produk --</option>' + 
-    data.map(p => `<option value="${p.id}">${p.sku} - ${p.nama} (Sisa: ${p.stok})</option>`).join('');
+    data.map(p => `<option value="${p.id}" data-harga="${p.harga_jual}">${p.sku} - ${p.nama} (Sisa: ${p.stok})</option>`).join('');
 }
+
+// FUNGSI BARU: Saran Harga Beli 50%
+window.suggestHargaBeli = () => {
+  const select = document.getElementById('inProdukId');
+  const hargaInput = document.getElementById('inputHargaCepat');
+  
+  if (!select.value) {
+    hargaInput.value = '';
+    return;
+  }
+  
+  const selectedOption = select.options[select.selectedIndex];
+  const hargaJual = parseFloat(selectedOption.getAttribute('data-harga')) || 0;
+  
+  // Kalikan 0.5 untuk 50%
+  const saranHargaBeli = Math.floor(hargaJual * 0.5); 
+  
+  if (saranHargaBeli > 0) {
+    hargaInput.value = saranHargaBeli;
+  } else {
+    hargaInput.value = '';
+  }
+};
 
 window.tambahKeTabelSementara = async () => {
   const produkId = document.getElementById('inProdukId').value;
@@ -659,10 +687,7 @@ async function loadStokPage() {
   }
   
   tbody.innerHTML = data.map(p => {
-    // Cek apakah stok di bawah 10
     const isLow = p.stok < 10;
-    
-    // Pilih warna badge & ikon
     const badgeClass = isLow ? 'danger' : 'success';
     const icon = isLow ? '<i class="fa-solid fa-triangle-exclamation"></i> ' : '<i class="fa-solid fa-check"></i> ';
     
