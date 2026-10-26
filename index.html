@@ -79,7 +79,6 @@
         <div class="submenu">
           <a href="#" onclick="showPage('inputMasuk', this)">Barang Masuk (PO)</a>
           <a href="#" onclick="showPage('inputKeluar', this)">Barang Keluar</a>
-          <!-- TAMBAHAN ID NAV-STOK -->
           <a href="#" id="nav-stok" onclick="showPage('stok', this)">Data Stok</a>
         </div>
       </div>
@@ -87,7 +86,6 @@
       <div class="menu-group">
         <div class="menu-item" onclick="toggleSubmenu(this)"><i class="fa-solid fa-cubes"></i> Master Data <i class="fa-solid fa-chevron-down arrow"></i></div>
         <div class="submenu">
-          <!-- TAMBAHAN ID NAV-PRODUK -->
           <a href="#" id="nav-produk" onclick="showPage('masterProduk', this)">Produk</a>
           <a href="#" onclick="showPage('masterMerk', this)">Merk</a>
           <a href="#" onclick="showPage('masterJenis', this)">Jenis</a>
@@ -151,7 +149,6 @@
 
         <div class="bento-grid">
           
-          <!-- UBAHAN: KARTU ASET JADI BISA DIKLIK KE DATA STOK -->
           <div class="bento-card featured-card" style="cursor: pointer;" onclick="document.getElementById('nav-stok').click()" title="Lihat Data Stok">
             <div class="featured-content">
               <div class="icon-box-glass"><i class="fa-solid fa-wallet"></i></div>
@@ -163,7 +160,6 @@
             </div>
           </div>
 
-          <!-- UBAHAN: KARTU TOTAL SKU JADI BISA DIKLIK KE MASTER PRODUK -->
           <div class="bento-card stat-card" style="cursor: pointer;" onclick="document.getElementById('nav-produk').click()" title="Lihat Master Produk">
             <div class="stat-icon blue"><i class="fa-solid fa-cube"></i></div>
             <div class="stat-details">
@@ -172,7 +168,6 @@
             </div>
           </div>
 
-          <!-- UBAHAN: KARTU STOK MENIPIS JADI BISA DIKLIK KE DATA STOK -->
           <div class="bento-card stat-card" style="cursor: pointer;" onclick="document.getElementById('nav-stok').click()" title="Lihat Stok Menipis">
             <div class="stat-icon red"><i class="fa-solid fa-triangle-exclamation"></i></div>
             <div class="stat-details">
@@ -181,7 +176,6 @@
             </div>
           </div>
 
-          <!-- Chart Card -->
           <div class="bento-card chart-card">
             <div class="card-header">
               <h3>Top 5 Stok Terbanyak</h3>
@@ -189,7 +183,6 @@
             <div class="chart-container"><canvas id="dashboardChart"></canvas></div>
           </div>
 
-          <!-- Recent Activity Table -->
           <div class="bento-card table-card">
             <div class="card-header">
               <h3>Aktivitas Terakhir</h3>
@@ -244,7 +237,8 @@
         <div class="bento-card input-stok-header">
           <div class="form-inline" style="flex: 2;">
             <label>Pilih Produk</label>
-            <select id="inProdukId" required>
+            <!-- TAMBAHAN ONCHANGE DI SINI -->
+            <select id="inProdukId" required onchange="suggestHargaBeli()">
               <option value="">Memuat produk...</option>
             </select>
           </div>
