@@ -1,9 +1,7 @@
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 
 const SUPABASE_URL = 'https://vggxtpyduiiaazoloylx.supabase.co/';
-// ⚠️ ISI KEY ANON SUPABASE LU DI SINI
-const SUPABASE_ANON_KEY = 'sb_publishable_kQifdwQIic-ycFJBLPa8Og_TvOSw13Z'; 
-
+const SUPABASE_ANON_KEY = 'sb_publishable_kQifdwQIic-ycFJBLPa8Og_TvOSw13Z';
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let currentUser = null;
@@ -12,14 +10,24 @@ let masterTipeAktif = '';
 let isEditingProduk = false;
 let chartInstance = null;
 
-/* PENGAMAN: Jika JS error, tetap munculkan Auth Screen */
-window.onerror = function(msg, url, line, col, error) {
-  console.error("JS Error:", msg);
-  document.getElementById('authScreen').classList.remove('hidden');
-  document.getElementById('appScreen').classList.add('hidden');
-  return false;
-};
+/* =========================================
+   FUNGSI LAZY LOAD EXCELJS (PERBAIKAN PERFORMA)
+========================================= */
+function loadExcelJS() {
+  return new Promise((resolve, reject) => {
+    if (window.ExcelJS) {
+      resolve();
+      return;
+    }
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js';
+    script.onload = () => resolve();
+    script.onerror = () => reject(new Error('Gagal memuat library ExcelJS'));
+    document.head.appendChild(script);
+  });
+}
 
+/* SPLASH & LOADER */
 window.addEventListener('load', () => {
   setTimeout(() => {
     const splash = document.getElementById('splashScreen');
@@ -110,6 +118,7 @@ window.filterTable = () => {
   } catch(e) {}
 };
 
+/* ANIMASI ANGKA */
 function animateValue(obj, start, end, duration, isRupiah = false) {
   if(!obj) return;
   let startTimestamp = null;
@@ -125,6 +134,7 @@ function animateValue(obj, start, end, duration, isRupiah = false) {
   window.requestAnimationFrame(step);
 }
 
+/* DARK MODE */
 window.toggleDarkMode = () => {
   try {
     const html = document.documentElement; const icon = document.getElementById('themeIcon');
@@ -140,6 +150,7 @@ try {
   }
 } catch(e) {}
 
+/* AUTHENTICATION */
 try {
   document.getElementById('loginForm').addEventListener('submit', async (e) => {
     e.preventDefault(); showLoader();
@@ -199,17 +210,7 @@ function updateUIProfile(data) {
   } catch(e) {}
 }
 
-supabase.auth.getSession().then(({ data: { session } }) => { 
-  if (session) {
-    initApp(session.user); 
-  } else {
-    // Kalau ga ada session, biarkan Auth Screen muncul (karena dari HTML udah ga ada hidden)
-    document.getElementById('authScreen').classList.remove('hidden');
-  }
-}).catch(err => {
-  console.error("Session err:", err);
-  document.getElementById('authScreen').classList.remove('hidden');
-});
+supabase.auth.getSession().then(({ data: { session } }) => { if (session) initApp(session.user); });
 
 /* DATA FUNCTIONS (DASHBOARD, ASET, DLL) */
 async function loadDashboard() {
@@ -528,23 +529,41 @@ async function loadHistory() {
   } catch(e) {}
 }
 
+/* PERBAIKAN PERFORMA: EXPORT EXCEL DENGAN LAZY LOAD */
 window.exportHistoryToExcel = async () => {
+  const btn = document.querySelector('#page-history .btn-primary');
+  const originalText = btn.innerHTML;
+  
   try {
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Memuat Excel...';
+    btn.disabled = true;
+
+    // 1. Load ExcelJS secara dinamis
+    await loadExcelJS();
+
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Memproses Data...';
+    
     const { data: ins } = await supabase.from('purchase_orders').select('*, po_items(jumlah, products(nama))');
     const { data: outs } = await supabase.from('stock_out').select('*, products(nama)');
     let history = [];
     if (ins) ins.forEach(po => po.po_items.forEach(item => history.push({ tanggal: po.tanggal, tipe: 'Masuk (PO)', produk: item.products?.nama, jumlah: item.jumlah, ket: po.no_po, created: po.created_at })));
     if (outs) outs.forEach(o => history.push({ tanggal: o.tanggal, tipe: 'Keluar', produk: o.products?.nama, jumlah: o.jumlah, ket: o.keterangan, created: o.created_at }));
     history.sort((a, b) => new Date(b.created) - new Date(a.created));
-    if (history.length === 0) return alert('Belum ada data history untuk diexport!');
-    const btn = document.querySelector('#page-history .btn-primary'); const originalText = btn.innerHTML;
-    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Memproses Excel...'; btn.disabled = true;
-    const workbook = new ExcelJS.Workbook(); const worksheet = workbook.addWorksheet('History Transaksi');
+    
+    if (history.length === 0) { 
+      btn.innerHTML = originalText; btn.disabled = false;
+      return alert('Belum ada data history untuk diexport!'); 
+    }
+
+    // 2. Generate Excel
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('History Transaksi');
     worksheet.columns = [
       { header: 'No', key: 'no', width: 8 }, { header: 'Tanggal', key: 'tanggal', width: 15 }, { header: 'Tipe Transaksi', key: 'tipe', width: 18 },
       { header: 'Nama Produk', key: 'produk', width: 30 }, { header: 'Jumlah (Qty)', key: 'jumlah', width: 15 }, { header: 'Keterangan / No PO', key: 'ket', width: 30 }
     ];
-    const headerRow = worksheet.getRow(1); headerRow.height = 25;
+    const headerRow = worksheet.getRow(1);
+    headerRow.height = 25;
     headerRow.eachCell((cell) => {
       cell.font = { name: 'Arial', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
       cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF111827' } };
@@ -572,6 +591,10 @@ window.exportHistoryToExcel = async () => {
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a'); a.href = url; a.download = `History_Inventory_${new Date().toISOString().slice(0, 10)}.xlsx`;
     document.body.appendChild(a); a.click(); document.body.removeChild(a); window.URL.revokeObjectURL(url);
-  } catch (error) { alert('Gagal membuat Excel: ' + error.message); } 
-  finally { try { const btn = document.querySelector('#page-history .btn-primary'); btn.innerHTML = 'Export ke Excel'; btn.disabled = false; } catch(e){} }
+    
+  } catch (error) { 
+    alert('Gagal membuat Excel: ' + error.message); 
+  } finally { 
+    btn.innerHTML = originalText; btn.disabled = false; 
+  }
 };
