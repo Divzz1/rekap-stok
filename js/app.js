@@ -1,8 +1,5 @@
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 
-/* ============================================================
-   ⚠️ GANTI DENGAN KREDENSIAL SUPABASE ANDA
-   ============================================================ */
 const SUPABASE_URL = 'https://vggxtpyduiiaazoloylx.supabase.co/';
 const SUPABASE_ANON_KEY = 'sb_publishable_kQifdwQIic-ycFJBLPa8Og_TvOSw13Z';
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -12,6 +9,25 @@ let tempStokData = [];
 let masterTipeAktif = '';
 let isEditingProduk = false;
 let chartInstance = null;
+
+/* =========================================
+   SPLASH SCREEN & GLOBAL LOADER
+========================================= */
+function hideSplash() {
+  const splash = document.getElementById('splashScreen');
+  if(splash) {
+    splash.classList.add('fade-out');
+    setTimeout(() => splash.remove(), 600);
+  }
+}
+
+function showLoader() { document.getElementById('globalLoader').classList.remove('hidden'); }
+function hideLoader() { document.getElementById('globalLoader').classList.add('hidden'); }
+
+// Sembunyikan splash screen setelah 1.5 detik (simulasi loading) atau setelah auth dicek
+window.addEventListener('load', () => {
+  setTimeout(hideSplash, 1000); 
+});
 
 /* =========================================
    UI & NAVIGATION 
@@ -45,6 +61,8 @@ window.toggleAuth = (type) => {
 };
 
 window.showPage = (pageId, el) => {
+  showLoader(); // Tampilkan loader
+
   if (window.innerWidth <= 1024) {
     document.getElementById('sidebar').classList.remove('open');
     document.getElementById('sidebarOverlay').classList.remove('open');
@@ -52,29 +70,35 @@ window.showPage = (pageId, el) => {
 
   document.querySelectorAll('.page-view').forEach(v => v.classList.add('hidden'));
   const target = document.getElementById(`page-${pageId}`);
-  if (target) {
-    target.classList.remove('hidden');
-    target.style.animation = 'none';
-    target.offsetHeight; 
-    target.style.animation = 'fadeIn 0.4s ease';
-  }
   
-  document.querySelectorAll('.menu-item, .submenu a').forEach(a => a.classList.remove('active'));
-  if (el) el.classList.add('active');
+  setTimeout(() => {
+    if (target) {
+      target.classList.remove('hidden');
+      target.style.animation = 'none';
+      target.offsetHeight; 
+      target.style.animation = 'slideUpFade 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards';
+    }
+    
+    document.querySelectorAll('.menu-item, .submenu a').forEach(a => a.classList.remove('active'));
+    if (el) el.classList.add('active');
 
-  document.getElementById('globalSearch').value = '';
+    document.getElementById('globalSearch').value = '';
 
-  if (pageId === 'dashboard') loadDashboard();
-  if (pageId.startsWith('master') && pageId !== 'masterProduk') loadMasterData(pageId.replace('master', '').toLowerCase());
-  if (pageId === 'masterProduk') loadProducts();
-  if (pageId === 'stok') loadStokPage();
-  if (pageId === 'history') loadHistory();
-  if (pageId === 'settings') loadSettingsData();
-  if (pageId === 'inputMasuk') loadDropdownProdukMasuk(); // <-- MEMANGGIL FUNGSI DROPDOWN
-  if (pageId === 'inputKeluar') {
-    loadDropdownProduk();
-    document.getElementById('outTanggal').value = new Date().toISOString().split('T')[0];
-  }
+    // Panggil fungsi load data
+    if (pageId === 'dashboard') loadDashboard();
+    if (pageId.startsWith('master') && pageId !== 'masterProduk') loadMasterData(pageId.replace('master', '').toLowerCase());
+    if (pageId === 'masterProduk') loadProducts();
+    if (pageId === 'stok') loadStokPage();
+    if (pageId === 'history') loadHistory();
+    if (pageId === 'settings') loadSettingsData();
+    if (pageId === 'inputMasuk') loadDropdownProdukMasuk(); 
+    if (pageId === 'inputKeluar') {
+      loadDropdownProduk();
+      document.getElementById('outTanggal').value = new Date().toISOString().split('T')[0];
+    }
+
+    hideLoader(); // Sembunyikan loader setelah data dimuat (simulasi delay)
+  }, 300); // Delay dikit biar animasi spinner kelihatan
 };
 
 window.toggleSubmenu = (element) => {
@@ -99,6 +123,34 @@ window.filterTable = () => {
     row.style.display = text.includes(input) ? '' : 'none';
   });
 };
+
+/* =========================================
+   ANIMASI NUMBER COUNTER
+========================================= */
+function animateValue(obj, start, end, duration, isRupiah = false) {
+  let startTimestamp = null;
+  const step = (timestamp) => {
+    if (!startTimestamp) startTimestamp = timestamp;
+    const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+    // Easing outQuart
+    const easeProgress = 1 - Math.pow(1 - progress, 4);
+    const currentVal = Math.floor(easeProgress * (end - start) + start);
+    
+    if (isRupiah) {
+      obj.innerHTML = 'Rp ' + currentVal.toLocaleString('id-ID');
+    } else {
+      obj.innerHTML = currentVal;
+    }
+
+    if (progress < 1) {
+      window.requestAnimationFrame(step);
+    } else {
+      // Pastikan nilai akhir pas
+      obj.innerHTML = isRupiah ? 'Rp ' + end.toLocaleString('id-ID') : end;
+    }
+  };
+  window.requestAnimationFrame(step);
+}
 
 /* =========================================
    DARK MODE
@@ -137,10 +189,12 @@ if (localStorage.getItem('theme') === 'dark') {
 ========================================= */
 document.getElementById('loginForm').addEventListener('submit', async (e) => {
   e.preventDefault();
+  showLoader();
   const { data, error } = await supabase.auth.signInWithPassword({ 
     email: document.getElementById('loginEmail').value, 
     password: document.getElementById('loginPass').value 
   });
+  hideLoader();
   if (error) { 
     document.getElementById('authError').textContent = error.message; 
     document.getElementById('authError').classList.remove('hidden'); 
@@ -149,11 +203,13 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
 
 document.getElementById('registerForm').addEventListener('submit', async (e) => {
   e.preventDefault();
+  showLoader();
   const { error } = await supabase.auth.signUp({ 
     email: document.getElementById('regEmail').value, 
     password: document.getElementById('regPass').value,
     options: { data: { nama: document.getElementById('regNama').value } }
   });
+  hideLoader();
   if (error) { 
     document.getElementById('authError').textContent = error.message; 
     document.getElementById('authError').classList.remove('hidden'); 
@@ -163,7 +219,11 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
   }
 });
 
-window.logout = async () => { await supabase.auth.signOut(); location.reload(); };
+window.logout = async () => { 
+  showLoader();
+  await supabase.auth.signOut(); 
+  location.reload(); 
+};
 
 async function initApp(user) {
   currentUser = user;
@@ -177,9 +237,7 @@ async function initApp(user) {
   if (!data) {
     const defaultNama = user.email.split('@')[0];
     const { data: newData } = await supabase.from('profiles').upsert({ 
-      id: user.id, 
-      nama: defaultNama, 
-      nama_perusahaan: 'Inventory' 
+      id: user.id, nama: defaultNama, nama_perusahaan: 'Inventory' 
     }).select().single();
     data = newData;
   }
@@ -228,7 +286,7 @@ function updateUIProfile(data) {
 supabase.auth.getSession().then(({ data: { session } }) => { if (session) initApp(session.user); });
 
 /* =========================================
-   SETTINGS & UPLOAD IMAGE
+   LOGIKA DATA & CRUD (Sama seperti sebelumnya)
 ========================================= */
 async function loadSettingsData() {
   const { data } = await supabase.from('profiles').select('*').eq('id', currentUser.id).single();
@@ -316,19 +374,19 @@ document.getElementById('formSettings').addEventListener('submit', async (e) => 
   }
 });
 
-/* =========================================
-   LOGIKA DATA (DASHBOARD & CRUD)
-========================================= */
 async function loadDashboard() {
   const { data: products } = await supabase.from('products').select('*').order('nama').limit(5);
   const { data: allProducts } = await supabase.from('products').select('stok, harga_jual');
   
   if (allProducts) {
-    document.getElementById('statTotalProduk').textContent = allProducts.length;
-    document.getElementById('statLowStok').textContent = allProducts.filter(p => p.stok < 10).length;
     let nilaiAset = 0;
     allProducts.forEach(p => { nilaiAset += (p.stok * p.harga_jual); });
-    document.getElementById('statNilaiAset').textContent = 'Rp ' + nilaiAset.toLocaleString('id-ID');
+    const lowStok = allProducts.filter(p => p.stok < 10).length;
+    
+    // Panggil animasi counter
+    animateValue(document.getElementById('statTotalProduk'), 0, allProducts.length, 1000);
+    animateValue(document.getElementById('statLowStok'), 0, lowStok, 1000);
+    animateValue(document.getElementById('statNilaiAset'), 0, nilaiAset, 1500, true);
   }
 
   if (products) {
@@ -346,34 +404,16 @@ async function loadDashboard() {
       data: { 
         labels: labels, 
         datasets: [{ 
-          label: 'Sisa Stok', 
-          data: dataStok, 
-          backgroundColor: '#2563eb', 
-          borderRadius: 6,
-          barThickness: 'flex',
-          maxBarThickness: 35
+          label: 'Sisa Stok', data: dataStok, backgroundColor: '#2563eb', borderRadius: 6,
+          barThickness: 'flex', maxBarThickness: 35
         }] 
       },
       options: { 
-        responsive: true, 
-        maintainAspectRatio: false, 
-        layout: { padding: { bottom: 10 } }, 
+        responsive: true, maintainAspectRatio: false, layout: { padding: { bottom: 10 } }, 
         plugins: { legend: { display: false } },
         scales: {
-          y: {
-            beginAtZero: true,
-            grid: { display: false, drawBorder: false },
-            ticks: { color: textColor, font: { family: 'Inter' } }
-          },
-          x: {
-            grid: { display: false, drawBorder: false },
-            ticks: { 
-              color: textColor, 
-              font: { family: 'Inter', size: 11 },
-              maxRotation: 45,
-              minRotation: 45
-            }
-          }
+          y: { beginAtZero: true, grid: { display: false, drawBorder: false }, ticks: { color: textColor } },
+          x: { grid: { display: false, drawBorder: false }, ticks: { color: textColor, font: { size: 11 }, maxRotation: 45, minRotation: 45 } }
         }
       }
     });
@@ -397,24 +437,15 @@ async function loadDashboard() {
   `).join('') || '<tr><td colspan="4" align="center">Belum ada aktivitas</td></tr>';
 }
 
-// FUNGSI BARU: Memuat Dropdown Produk untuk Barang Masuk
 async function loadDropdownProdukMasuk() {
   const select = document.getElementById('inProdukId');
   if (!select) return;
-
-  // Ambil semua produk
   const { data } = await supabase.from('products').select('id, sku, nama, stok').order('nama');
-  
-  if (!data || data.length === 0) {
-    select.innerHTML = '<option value="">Belum ada produk di Master Data</option>';
-    return;
-  }
-  
+  if (!data || data.length === 0) { select.innerHTML = '<option value="">Belum ada produk di Master Data</option>'; return; }
   select.innerHTML = '<option value="">-- Pilih Produk --</option>' + 
     data.map(p => `<option value="${p.id}">${p.sku} - ${p.nama} (Sisa: ${p.stok})</option>`).join('');
 }
 
-// FUNGSI YANG DIUBAH: Mengambil dari Dropdown, bukan ketikan manual
 window.tambahKeTabelSementara = async () => {
   const produkId = document.getElementById('inProdukId').value;
   const jml = parseInt(document.getElementById('inputJmlCepat').value);
@@ -422,11 +453,9 @@ window.tambahKeTabelSementara = async () => {
 
   if (!produkId || !jml || !harga) return alert('Pilih produk, isi Jumlah, dan Harga dengan benar.');
 
-  // Ambil data produk terbaru dari database
   const { data: prod, error } = await supabase.from('products').select('*').eq('id', produkId).single();
   if (error || !prod) return alert('Produk tidak ditemukan di database!');
 
-  // Cek jika produk sudah ada di daftar antrean sementara, update saja jumlah/harganya
   const existingIndex = tempStokData.findIndex(item => item.id === prod.id);
   if (existingIndex !== -1) {
     tempStokData[existingIndex].jumlahBeli = jml;
@@ -436,8 +465,6 @@ window.tambahKeTabelSementara = async () => {
   }
   
   renderTempStok();
-
-  // Reset form input
   document.getElementById('inProdukId').value = '';
   document.getElementById('inputJmlCepat').value = '';
   document.getElementById('inputHargaCepat').value = '';
@@ -461,16 +488,18 @@ window.hapusTempStok = (index) => { tempStokData.splice(index, 1); renderTempSto
 
 window.simpanStokMassal = async () => {
   if (tempStokData.length === 0) return alert('Belum ada data untuk disimpan.');
+  showLoader();
   const noPo = 'PO-' + Date.now().toString().slice(-6);
   const today = new Date().toISOString().split('T')[0];
 
   const { data: po, error: poErr } = await supabase.from('purchase_orders').insert({ no_po: noPo, tanggal: today, total_item: tempStokData.length }).select().single();
-  if (poErr) return alert('Gagal: ' + poErr.message);
+  if (poErr) { hideLoader(); return alert('Gagal: ' + poErr.message); }
 
   for (let item of tempStokData) {
     await supabase.from('po_items').insert({ po_id: po.id, product_id: item.id, jumlah: item.jumlahBeli, harga: item.hargaBeli });
     await supabase.from('products').update({ stok: item.stok + item.jumlahBeli }).eq('id', item.id);
   }
+  hideLoader();
   alert('Transaksi Masuk Berhasil Disimpan!');
   tempStokData = []; renderTempStok(); loadDashboard();
 };
@@ -478,24 +507,25 @@ window.simpanStokMassal = async () => {
 async function loadDropdownProduk() {
   const select = document.getElementById('outProdukId');
   const { data } = await supabase.from('products').select('id, sku, nama, stok').gt('stok', 0).order('nama');
-  
   if (!data || data.length === 0) { select.innerHTML = '<option value="">Tidak ada stok tersedia</option>'; return; }
   select.innerHTML = data.map(p => `<option value="${p.id}">${p.sku} - ${p.nama} (Sisa: ${p.stok})</option>`).join('');
 }
 
 document.getElementById('formKeluar').addEventListener('submit', async (e) => {
   e.preventDefault();
+  showLoader();
   const prodId = document.getElementById('outProdukId').value;
   const jml = parseInt(document.getElementById('outJumlah').value);
   
   const { data: prod } = await supabase.from('products').select('stok').eq('id', prodId).single();
-  if (prod.stok < jml) return alert(`Gagal: Stok tidak mencukupi! Sisa: ${prod.stok}`);
+  if (prod.stok < jml) { hideLoader(); return alert(`Gagal: Stok tidak mencukupi! Sisa: ${prod.stok}`); }
 
   const payload = { user_id: currentUser.id, product_id: prodId, jumlah: jml, tanggal: document.getElementById('outTanggal').value, keterangan: document.getElementById('outKet').value };
   const { error } = await supabase.from('stock_out').insert(payload);
-  if (error) return alert('Gagal: ' + error.message);
+  if (error) { hideLoader(); return alert('Gagal: ' + error.message); }
 
   await supabase.from('products').update({ stok: prod.stok - jml }).eq('id', prodId);
+  hideLoader();
   alert('Barang Keluar Berhasil Dicatat!');
   e.target.reset(); loadDashboard();
 });
@@ -560,6 +590,7 @@ window.bukaDetailProduk = (id = null) => {
 
 document.getElementById('formProduk').addEventListener('submit', async (e) => {
   e.preventDefault();
+  showLoader();
   const payload = {
     sku: document.getElementById('prodSku').value,
     nama: document.getElementById('prodNama').value,
@@ -584,6 +615,7 @@ document.getElementById('formProduk').addEventListener('submit', async (e) => {
     error = err;
   }
 
+  hideLoader();
   if (error) return alert('Gagal: ' + error.message);
   closeModal('modalProduk'); loadProducts(); loadDashboard();
 });
@@ -641,9 +673,6 @@ async function loadHistory() {
   `).join('');
 }
 
-/* =========================================
-   EXPORT HISTORY TO EXCEL
-========================================= */
 window.exportHistoryToExcel = async () => {
   const { data: ins } = await supabase.from('purchase_orders').select('*, po_items(jumlah, products(nama))');
   const { data: outs } = await supabase.from('stock_out').select('*, products(nama)');
