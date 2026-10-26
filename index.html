@@ -12,8 +12,22 @@
 </head>
 <body>
 
+<!-- SPLASH SCREEN ANIMASI -->
+<div id="splashScreen">
+  <div class="splash-logo">
+    <i class="fa-solid fa-cube"></i>
+  </div>
+  <h2 class="splash-text">Inventory System</h2>
+  <div class="spinner"></div>
+</div>
+
+<!-- GLOBAL LOADER (Saat pindah halaman / simpan) -->
+<div id="globalLoader" class="hidden">
+  <div class="spinner"></div>
+</div>
+
 <!-- AUTH SCREEN -->
-<div id="authScreen" class="auth-container">
+<div id="authScreen" class="auth-container hidden">
   <div class="auth-box">
     <h2 style="margin-bottom: 24px; font-weight: 700; font-size: 24px;">Inventory System</h2>
     <div id="authError" class="hidden" style="color: red; margin-bottom: 16px; font-size: 13px;"></div>
@@ -100,7 +114,6 @@
         </div>
       </div>
       <div class="topbar-right">
-        <!-- Tombol Dark Mode -->
         <button class="icon-btn" onclick="toggleDarkMode()" title="Ganti Tema">
           <i class="fa-solid fa-moon" id="themeIcon"></i>
         </button>
@@ -134,10 +147,8 @@
           </div>
         </div>
 
-        <!-- BENTO GRID LAYOUT -->
         <div class="bento-grid">
-          
-          <!-- Featured Card (Total Nilai Aset) -->
+          <!-- Featured Card -->
           <div class="bento-card featured-card">
             <div class="featured-content">
               <div class="icon-box-glass"><i class="fa-solid fa-wallet"></i></div>
@@ -149,7 +160,7 @@
             </div>
           </div>
 
-          <!-- Stat Cards (Total SKU & Stok Menipis) -->
+          <!-- Stat Cards -->
           <div class="bento-card stat-card">
             <div class="stat-icon blue"><i class="fa-solid fa-cube"></i></div>
             <div class="stat-details">
@@ -166,16 +177,15 @@
             </div>
           </div>
 
-          <!-- Chart Card (Kiri Bawah) -->
+          <!-- Chart Card -->
           <div class="bento-card chart-card">
             <div class="card-header">
               <h3>Top 5 Stok Terbanyak</h3>
-              <i class="fa-solid fa-ellipsis text-muted"></i>
             </div>
             <div class="chart-container"><canvas id="dashboardChart"></canvas></div>
           </div>
 
-          <!-- Recent Activity Table (Kanan Bawah) -->
+          <!-- Recent Activity Table -->
           <div class="bento-card table-card">
             <div class="card-header">
               <h3>Aktivitas Terakhir</h3>
@@ -228,15 +238,12 @@
       <div id="page-inputMasuk" class="page-view hidden">
         <h2 class="page-title">Input Barang Masuk (PO)</h2>
         <div class="bento-card input-stok-header">
-          
-          <!-- DROPDOWN PRODUK BARU -->
           <div class="form-inline" style="flex: 2;">
             <label>Pilih Produk</label>
             <select id="inProdukId" required>
               <option value="">Memuat produk...</option>
             </select>
           </div>
-          
           <div class="form-inline"><label>Jumlah Masuk</label><input type="number" id="inputJmlCepat" placeholder="0" min="1"></div>
           <div class="form-inline"><label>Harga Beli</label><input type="number" id="inputHargaCepat" placeholder="Rp"></div>
           <button class="btn-primary" onclick="tambahKeTabelSementara()"><i class="fa-solid fa-cart-plus"></i> Tambah</button>
