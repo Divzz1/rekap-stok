@@ -12,26 +12,21 @@
 </head>
 <body>
 
-<!-- SPLASH SCREEN ANIMASI -->
+<!-- SPLASH SCREEN -->
 <div id="splashScreen">
-  <div class="splash-logo">
-    <i class="fa-solid fa-cube"></i>
-  </div>
+  <div class="splash-logo"><i class="fa-solid fa-cube"></i></div>
   <h2 class="splash-text">Inventory System</h2>
   <div class="spinner"></div>
 </div>
 
 <!-- GLOBAL LOADER -->
-<div id="globalLoader" class="hidden">
-  <div class="spinner"></div>
-</div>
+<div id="globalLoader" class="hidden"><div class="spinner"></div></div>
 
 <!-- AUTH SCREEN -->
 <div id="authScreen" class="auth-container hidden">
   <div class="auth-box">
     <h2 style="margin-bottom: 24px; font-weight: 700; font-size: 24px;">Inventory System</h2>
     <div id="authError" class="hidden" style="color: red; margin-bottom: 16px; font-size: 13px;"></div>
-    
     <div id="loginBox">
       <form id="loginForm">
         <input type="email" id="loginEmail" placeholder="Email" required>
@@ -40,7 +35,6 @@
         <p style="margin-top:20px; font-size:14px; color: var(--text-muted);">Belum punya akun? <a href="#" onclick="toggleAuth('register'); return false;" style="color:var(--primary); font-weight:600;">Daftar</a></p>
       </form>
     </div>
-    
     <div id="registerBox" class="hidden">
       <form id="registerForm">
         <input type="text" id="regNama" placeholder="Nama Lengkap" required>
@@ -55,7 +49,6 @@
 
 <!-- APP LAYOUT -->
 <div id="appScreen" class="app-layout hidden">
-  
   <div id="sidebarOverlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
 
   <!-- SIDEBAR -->
@@ -63,11 +56,7 @@
     <div class="sidebar-brand">
       <div class="brand-logo-placeholder" style="width: 36px; height: 36px; background: var(--border); border-radius: 10px; flex-shrink: 0;"></div>
       <img id="sidebarLogoImg" class="brand-logo" src="" alt="Logo" style="display: none; object-fit: cover; flex-shrink: 0; border-radius: 10px; width: 36px; height: 36px;">
-      
-      <div class="brand-text">
-        <strong id="sidebarBrandName">Inventory</strong>
-        <span>Enterprise</span>
-      </div>
+      <div class="brand-text"><strong id="sidebarBrandName">Inventory</strong><span>Enterprise</span></div>
     </div>
     
     <nav class="sidebar-menu">
@@ -93,6 +82,9 @@
           <a href="#" onclick="showPage('masterLokasi', this)">Lokasi</a>
         </div>
       </div>
+
+      <!-- MENU BARU: LAPORAN ASET -->
+      <a href="#" id="nav-laporanAset" class="menu-item" onclick="showPage('laporanAset', this)"><i class="fa-solid fa-chart-pie"></i> Laporan Aset</a>
       
       <a href="#" class="menu-item" onclick="showPage('history', this)"><i class="fa-solid fa-clock-rotate-left"></i> History Transaksi</a>
     </nav>
@@ -114,10 +106,7 @@
         </div>
       </div>
       <div class="topbar-right">
-        <button class="icon-btn" onclick="toggleDarkMode()" title="Ganti Tema">
-          <i class="fa-solid fa-moon" id="themeIcon"></i>
-        </button>
-        
+        <button class="icon-btn" onclick="toggleDarkMode()" title="Ganti Tema"><i class="fa-solid fa-moon" id="themeIcon"></i></button>
         <div class="profile-dropdown-container">
           <div class="user-profile" onclick="toggleProfileMenu(event)">
             <span id="userNameDisplay">Admin</span>
@@ -125,12 +114,8 @@
             <img id="userAvatarImg" class="avatar" src="" alt="Avatar" style="display: none; object-fit: cover; width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;">
           </div>
           <div class="dropdown-menu hidden" id="profileDropdown">
-            <a href="#" class="dropdown-item" onclick="showPage('settings', document.querySelectorAll('.sidebar-footer a')[0]); toggleProfileMenu(event); return false;">
-              <i class="fa-solid fa-gear"></i> Pengaturan
-            </a>
-            <a href="#" class="dropdown-item text-danger" onclick="logout(); return false;">
-              <i class="fa-solid fa-arrow-right-from-bracket"></i> Logout
-            </a>
+            <a href="#" class="dropdown-item" onclick="showPage('settings', document.querySelectorAll('.sidebar-footer a')[0]); toggleProfileMenu(event); return false;"><i class="fa-solid fa-gear"></i> Pengaturan</a>
+            <a href="#" class="dropdown-item text-danger" onclick="logout(); return false;"><i class="fa-solid fa-arrow-right-from-bracket"></i> Logout</a>
           </div>
         </div>
       </div>
@@ -148,46 +133,35 @@
         </div>
 
         <div class="bento-grid">
-          
-          <div class="bento-card featured-card" style="cursor: pointer;" onclick="document.getElementById('nav-stok').click()" title="Lihat Data Stok">
+          <!-- KARTU DASHBOARD: ESTIMASI LABA BERSIH -->
+          <div class="bento-card featured-card" style="cursor: pointer;" onclick="document.getElementById('nav-laporanAset').click()" title="Lihat Rincian Laporan Aset">
             <div class="featured-content">
-              <div class="icon-box-glass"><i class="fa-solid fa-wallet"></i></div>
-              <p>Total Nilai Aset</p>
+              <div class="icon-box-glass"><i class="fa-solid fa-chart-line"></i></div>
+              <p>Estimasi Laba Bersih</p>
               <h1 id="statNilaiAset">Rp 0</h1>
               <div class="featured-footer">
-                <span><i class="fa-solid fa-arrow-trend-up"></i> Estimasi Harga Jual</span>
+                <span><i class="fa-solid fa-circle-info"></i> (Harga Jual - Modal) x Stok</span>
               </div>
             </div>
           </div>
 
           <div class="bento-card stat-card" style="cursor: pointer;" onclick="document.getElementById('nav-produk').click()" title="Lihat Master Produk">
             <div class="stat-icon blue"><i class="fa-solid fa-cube"></i></div>
-            <div class="stat-details">
-              <span>Total SKU</span>
-              <h3 id="statTotalProduk">0</h3>
-            </div>
+            <div class="stat-details"><span>Total SKU</span><h3 id="statTotalProduk">0</h3></div>
           </div>
 
           <div class="bento-card stat-card" style="cursor: pointer;" onclick="document.getElementById('nav-stok').click()" title="Lihat Stok Menipis">
             <div class="stat-icon red"><i class="fa-solid fa-triangle-exclamation"></i></div>
-            <div class="stat-details">
-              <span>Stok Menipis</span>
-              <h3 id="statLowStok">0</h3>
-            </div>
+            <div class="stat-details"><span>Stok Menipis</span><h3 id="statLowStok">0</h3></div>
           </div>
 
           <div class="bento-card chart-card">
-            <div class="card-header">
-              <h3>Top 5 Stok Terbanyak</h3>
-            </div>
+            <div class="card-header"><h3>Top 5 Stok Terbanyak</h3></div>
             <div class="chart-container"><canvas id="dashboardChart"></canvas></div>
           </div>
 
           <div class="bento-card table-card">
-            <div class="card-header">
-              <h3>Aktivitas Terakhir</h3>
-              <a href="#" onclick="showPage('history', document.querySelectorAll('.menu-item')[4]); return false;" style="font-size: 13px; color: var(--primary); font-weight: 600;">Lihat Semua</a>
-            </div>
+            <div class="card-header"><h3>Aktivitas Terakhir</h3><a href="#" onclick="showPage('history', document.querySelectorAll('.menu-item')[4]); return false;" style="font-size: 13px; color: var(--primary); font-weight: 600;">Lihat Semua</a></div>
             <div class="table-responsive">
               <table class="data-table">
                 <thead><tr><th>Tgl</th><th>Tipe</th><th>Produk</th><th class="text-right">Qty</th></tr></thead>
@@ -198,34 +172,68 @@
         </div>
       </div>
 
+      <!-- LAPORAN ASET (HALAMAN BARU) -->
+      <div id="page-laporanAset" class="page-view hidden">
+        <div class="page-header-flex">
+          <div>
+            <h2 class="page-title" style="margin-bottom: 4px;">Laporan Aset & Keuangan</h2>
+            <p style="color: var(--text-muted); font-size: 14px;">Rincian modal, potensi pendapatan, dan laba bersih dari stok yang ada.</p>
+          </div>
+        </div>
+
+        <div class="dashboard-cards" style="grid-template-columns: repeat(3, 1fr); margin-bottom: 24px;">
+          <div class="bento-card stat-card">
+            <div class="stat-icon" style="background: #fef3c7; color: #d97706;"><i class="fa-solid fa-wallet"></i></div>
+            <div class="stat-details"><span>Total Modal Tertahan</span><h3 id="statTotalModal">Rp 0</h3></div>
+          </div>
+          <div class="bento-card stat-card">
+            <div class="stat-icon blue"><i class="fa-solid fa-money-bill-trend-up"></i></div>
+            <div class="stat-details"><span>Total Potensi Jual</span><h3 id="statTotalOmzet">Rp 0</h3></div>
+          </div>
+          <div class="bento-card stat-card">
+            <div class="stat-icon" style="background: #dcfce7; color: #16a34a;"><i class="fa-solid fa-sack-dollar"></i></div>
+            <div class="stat-details"><span>Estimasi Laba Bersih</span><h3 id="statTotalLaba" style="color: #16a34a;">Rp 0</h3></div>
+          </div>
+        </div>
+
+        <div class="bento-card">
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>SKU</th>
+                  <th>Nama Produk</th>
+                  <th class="text-right">Sisa Stok</th>
+                  <th class="text-right">Harga Beli (Modal)</th>
+                  <th class="text-right">Harga Jual</th>
+                  <th class="text-right">Total Modal</th>
+                  <th class="text-right">Total Omzet</th>
+                  <th class="text-right">Laba Kotor</th>
+                </tr>
+              </thead>
+              <tbody id="tableLaporanAset"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
       <!-- SETTINGS -->
       <div id="page-settings" class="page-view hidden">
-        <div class="page-header-flex">
-          <h2 class="page-title">Pengaturan Akun</h2>
-        </div>
+        <div class="page-header-flex"><h2 class="page-title">Pengaturan Akun</h2></div>
         <div class="bento-card" style="max-width: 600px;">
           <form id="formSettings">
-            <div class="form-group">
-              <label>Nama Perusahaan / Toko</label>
-              <input type="text" id="settingCompanyName" placeholder="Cth: PT Maju Jaya" required>
-            </div>
-            <div class="form-group">
-              <label>Username (Nama Tampilan Anda)</label>
-              <input type="text" id="settingUsername" placeholder="Cth: Diva Prawira" required>
-            </div>
-            
+            <div class="form-group"><label>Nama Perusahaan / Toko</label><input type="text" id="settingCompanyName" required></div>
+            <div class="form-group"><label>Username (Nama Tampilan Anda)</label><input type="text" id="settingUsername" required></div>
             <div class="form-group" style="background: var(--bg-main); padding: 16px; border-radius: var(--radius-md); border: 1px dashed var(--border);">
               <label>Ganti Logo Perusahaan (Opsional)</label>
               <input type="file" id="inputLogo" accept="image/*" style="margin-top: 8px; border: none; padding: 0;">
-              <img id="previewLogo" src="" alt="Preview Logo" style="display: none; max-width: 100px; max-height: 100px; margin-top: 12px; border-radius: 8px; object-fit: contain; border: 1px solid var(--border); background: white;">
+              <img id="previewLogo" src="" alt="Preview Logo" style="display: none; max-width: 100px; margin-top: 12px; border-radius: 8px; object-fit: contain; background: white;">
             </div>
-
             <div class="form-group" style="background: var(--bg-main); padding: 16px; border-radius: var(--radius-md); border: 1px dashed var(--border);">
               <label>Ganti Foto Profil (Opsional)</label>
               <input type="file" id="inputAvatar" accept="image/*" style="margin-top: 8px; border: none; padding: 0;">
-              <img id="previewAvatar" src="" alt="Preview Avatar" style="display: none; width: 80px; height: 80px; margin-top: 12px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border); background: white;">
+              <img id="previewAvatar" src="" alt="Preview Avatar" style="display: none; width: 80px; height: 80px; margin-top: 12px; border-radius: 50%; object-fit: cover; background: white;">
             </div>
-
             <button type="submit" class="btn-primary"><i class="fa-solid fa-floppy-disk"></i> Simpan Pengaturan</button>
           </form>
         </div>
@@ -237,13 +245,12 @@
         <div class="bento-card input-stok-header">
           <div class="form-inline" style="flex: 2;">
             <label>Pilih Produk</label>
-            <!-- TAMBAHAN ONCHANGE DI SINI -->
             <select id="inProdukId" required onchange="suggestHargaBeli()">
               <option value="">Memuat produk...</option>
             </select>
           </div>
           <div class="form-inline"><label>Jumlah Masuk</label><input type="number" id="inputJmlCepat" placeholder="0" min="1"></div>
-          <div class="form-inline"><label>Harga Beli</label><input type="number" id="inputHargaCepat" placeholder="Rp"></div>
+          <div class="form-inline"><label>Harga Beli (Modal)</label><input type="number" id="inputHargaCepat" placeholder="Rp"></div>
           <button class="btn-primary" onclick="tambahKeTabelSementara()"><i class="fa-solid fa-cart-plus"></i> Tambah</button>
         </div>
         <div class="bento-card mt-20">
@@ -280,7 +287,7 @@
         <div class="bento-card">
           <div class="table-responsive">
             <table class="data-table" id="tableProduk">
-              <thead><tr><th>SKU</th><th>Nama</th><th>Lokasi</th><th>Status</th><th>Stok</th><th>Harga Jual</th><th>Action</th></tr></thead>
+              <thead><tr><th>SKU</th><th>Nama</th><th>Lokasi</th><th>Status</th><th>Stok</th><th>Harga Modal</th><th>Harga Jual</th><th>Action</th></tr></thead>
               <tbody id="tableMasterProduk"></tbody>
             </table>
           </div>
@@ -375,6 +382,9 @@
           <div class="form-group"><label>Status Barang</label>
             <select id="prodStatus"><option value="Tersedia">Tersedia</option><option value="Rusak/Nonaktif">Rusak/Nonaktif</option></select>
           </div>
+          <div class="form-group"><label>Harga Modal / Beli (Rp)</label><input type="number" id="prodHargaBeli" value="0" min="0"></div>
+        </div>
+        <div class="form-row">
           <div class="form-group"><label>Harga Jual (Rp)</label><input type="number" id="prodHarga" value="0" min="0"></div>
         </div>
       </div>
