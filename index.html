@@ -2,13 +2,15 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <!-- Perbaikan: Hapus user-scalable=no agar bisa di-zoom -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Perbaikan SEO: Tambah meta description -->
+  <meta name="description" content="Aplikasi Enterprise Inventory System untuk mengelola stok barang, laporan aset, dan analitik gudang secara real-time.">
   <title>Enterprise Inventory System</title>
-  <!-- TAMBAHAN ?v=999 UNTUK HAPUS CACHE -->
   <link rel="stylesheet" href="css/style.css?v=999">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+  <!-- PERBAIKAN: ExcelJS dihapus dari sini, akan dimuat via JS saat dibutuhkan -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -23,10 +25,10 @@
 <!-- GLOBAL LOADER -->
 <div id="globalLoader" class="hidden"><div class="spinner"></div></div>
 
-<!-- AUTH SCREEN (TIDAK ADA CLASS HIDDEN LAGI AGAR MUNCUL DULUAN) -->
+<!-- AUTH SCREEN -->
 <div id="authScreen" class="auth-container">
   <div class="auth-box">
-    <h2 style="margin-bottom: 24px; font-weight: 700; font-size: 24px;">Inventory System</h2>
+    <h1 style="margin-bottom: 24px; font-weight: 700; font-size: 24px;">Inventory System</h1>
     <div id="authError" class="hidden" style="color: red; margin-bottom: 16px; font-size: 13px;"></div>
     <div id="loginBox">
       <form id="loginForm">
@@ -55,7 +57,7 @@
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-brand">
       <div class="brand-logo-placeholder" style="width: 36px; height: 36px; background: var(--border); border-radius: 10px; flex-shrink: 0;"></div>
-      <img id="sidebarLogoImg" class="brand-logo" src="" alt="Logo" style="display: none; object-fit: cover; flex-shrink: 0; border-radius: 10px; width: 36px; height: 36px;">
+      <img id="sidebarLogoImg" class="brand-logo" src="" alt="Logo Perusahaan" style="display: none; object-fit: cover; flex-shrink: 0; border-radius: 10px; width: 36px; height: 36px;">
       <div class="brand-text"><strong id="sidebarBrandName">Inventory</strong><span>Enterprise</span></div>
     </div>
     
@@ -96,8 +98,8 @@
   <main class="main-content">
     <header class="topbar">
       <div class="topbar-left">
-        <!-- TOMBOL HAMBURGER Z-INDEX TINGGI -->
-        <button type="button" class="hamburger" onclick="toggleMenu()" style="z-index: 9999; position: relative;"><i class="fa-solid fa-bars"></i></button>
+        <!-- Perbaikan Aksesibilitas: Tambah aria-label -->
+        <button type="button" class="hamburger" onclick="toggleMenu()" aria-label="Buka Menu"><i class="fa-solid fa-bars"></i></button>
         <div class="search-bar">
           <i class="fa-solid fa-magnifying-glass text-muted"></i>
           <input type="text" id="globalSearch" placeholder="Cari SKU / Nama Produk..." onkeyup="filterTable()">
@@ -109,7 +111,7 @@
           <div class="user-profile" onclick="toggleProfileMenu(event)">
             <span id="userNameDisplay">Admin</span>
             <div class="avatar-placeholder" style="width: 32px; height: 32px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold;">A</div>
-            <img id="userAvatarImg" class="avatar" src="" alt="Avatar" style="display: none; object-fit: cover; width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;">
+            <img id="userAvatarImg" class="avatar" src="" alt="Foto Profil" style="display: none; object-fit: cover; width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;">
           </div>
           <div class="dropdown-menu hidden" id="profileDropdown">
             <a href="#" class="dropdown-item" onclick="showPage('settings', document.querySelectorAll('.sidebar-footer a')[0]); toggleProfileMenu(event); return false;"><i class="fa-solid fa-gear"></i> Pengaturan</a>
@@ -119,13 +121,15 @@
       </div>
     </header>
 
+    <!-- Perbaikan Layout Shift: min-height ditambahkan di CSS -->
     <div class="content-area">
       
       <!-- DASHBOARD -->
       <div id="page-dashboard" class="page-view">
         <div class="page-header-flex">
           <div>
-            <h2 class="page-title" style="margin-bottom: 4px;">Dashboard</h2>
+            <!-- Perbaikan Hierarki: Ganti H2 menjadi H1 -->
+            <h1 class="page-title" style="margin-bottom: 4px;">Dashboard</h1>
             <p style="color: var(--text-muted); font-size: 14px;">Ringkasan inventaris dan aktivitas gudang Anda.</p>
           </div>
         </div>
@@ -135,7 +139,8 @@
             <div class="featured-content">
               <div class="icon-box-glass"><i class="fa-solid fa-chart-line"></i></div>
               <p>Estimasi Laba Bersih</p>
-              <h1 id="statNilaiAset">Rp 0</h1>
+              <!-- Perbaikan Kontras & Aksesibilitas -->
+              <h2 id="statNilaiAset" style="font-size: 32px; color: white;">Rp 0</h2>
               <div class="featured-footer">
                 <span><i class="fa-solid fa-circle-info"></i> (Harga Jual - Modal) x Stok</span>
               </div>
@@ -144,21 +149,21 @@
 
           <div class="bento-card stat-card" style="cursor: pointer;" onclick="document.getElementById('nav-produk').click()" title="Lihat Master Produk">
             <div class="stat-icon blue"><i class="fa-solid fa-cube"></i></div>
-            <div class="stat-details"><span>Total SKU</span><h3 id="statTotalProduk">0</h3></div>
+            <div class="stat-details"><span>Total SKU</span><h2 id="statTotalProduk">0</h2></div>
           </div>
 
           <div class="bento-card stat-card" style="cursor: pointer;" onclick="document.getElementById('nav-stok').click()" title="Lihat Stok Menipis">
             <div class="stat-icon red"><i class="fa-solid fa-triangle-exclamation"></i></div>
-            <div class="stat-details"><span>Stok Menipis</span><h3 id="statLowStok">0</h3></div>
+            <div class="stat-details"><span>Stok Menipis</span><h2 id="statLowStok">0</h2></div>
           </div>
 
           <div class="bento-card chart-card">
-            <div class="card-header"><h3>Top 5 Stok Terbanyak</h3></div>
+            <div class="card-header"><h2>Top 5 Stok Terbanyak</h2></div>
             <div class="chart-container"><canvas id="dashboardChart"></canvas></div>
           </div>
 
           <div class="bento-card table-card">
-            <div class="card-header"><h3>Aktivitas Terakhir</h3><a href="#" onclick="showPage('history', document.querySelectorAll('.menu-item')[4]); return false;" style="font-size: 13px; color: var(--primary); font-weight: 600;">Lihat Semua</a></div>
+            <div class="card-header"><h2>Aktivitas Terakhir</h2><a href="#" onclick="showPage('history', document.querySelectorAll('.menu-item')[4]); return false;" style="font-size: 13px; color: #60a5fa; font-weight: 600;">Lihat Semua</a></div>
             <div class="table-responsive">
               <table class="data-table">
                 <thead><tr><th>Tgl</th><th>Tipe</th><th>Produk</th><th class="text-right">Qty</th></tr></thead>
@@ -173,7 +178,7 @@
       <div id="page-laporanAset" class="page-view hidden">
         <div class="page-header-flex">
           <div>
-            <h2 class="page-title" style="margin-bottom: 4px;">Laporan Aset & Keuangan</h2>
+            <h1 class="page-title" style="margin-bottom: 4px;">Laporan Aset & Keuangan</h1>
             <p style="color: var(--text-muted); font-size: 14px;">Rincian modal, potensi pendapatan, dan laba bersih dari stok yang ada.</p>
           </div>
         </div>
@@ -181,15 +186,15 @@
         <div class="report-grid">
           <div class="report-card">
             <div class="stat-icon" style="background: #fef3c7; color: #d97706;"><i class="fa-solid fa-wallet"></i></div>
-            <div class="stat-details"><span>Total Modal Tertahan</span><h3 id="statTotalModal">Rp 0</h3></div>
+            <div class="stat-details"><span>Total Modal Tertahan</span><h2 id="statTotalModal">Rp 0</h2></div>
           </div>
           <div class="report-card">
             <div class="stat-icon blue"><i class="fa-solid fa-money-bill-trend-up"></i></div>
-            <div class="stat-details"><span>Total Potensi Jual</span><h3 id="statTotalOmzet">Rp 0</h3></div>
+            <div class="stat-details"><span>Total Potensi Jual</span><h2 id="statTotalOmzet">Rp 0</h2></div>
           </div>
           <div class="report-card">
             <div class="stat-icon" style="background: #dcfce7; color: #16a34a;"><i class="fa-solid fa-sack-dollar"></i></div>
-            <div class="stat-details"><span>Estimasi Laba Bersih</span><h3 id="statTotalLaba" style="color: #16a34a;">Rp 0</h3></div>
+            <div class="stat-details"><span>Estimasi Laba Bersih</span><h2 id="statTotalLaba" style="color: #16a34a;">Rp 0</h2></div>
           </div>
         </div>
 
@@ -210,7 +215,7 @@
 
       <!-- SETTINGS -->
       <div id="page-settings" class="page-view hidden">
-        <div class="page-header-flex"><h2 class="page-title">Pengaturan Akun</h2></div>
+        <div class="page-header-flex"><h1 class="page-title">Pengaturan Akun</h1></div>
         <div class="bento-card" style="max-width: 600px;">
           <form id="formSettings">
             <div class="form-group"><label>Nama Perusahaan / Toko</label><input type="text" id="settingCompanyName" required></div>
@@ -232,7 +237,7 @@
 
       <!-- BARANG MASUK (PO) -->
       <div id="page-inputMasuk" class="page-view hidden">
-        <h2 class="page-title">Input Barang Masuk (PO)</h2>
+        <h1 class="page-title">Input Barang Masuk (PO)</h1>
         <div class="bento-card input-stok-header">
           <div class="form-inline" style="flex: 2;">
             <label>Pilih Produk</label>
@@ -257,7 +262,7 @@
 
       <!-- BARANG KELUAR -->
       <div id="page-inputKeluar" class="page-view hidden">
-        <h2 class="page-title">Input Barang Keluar</h2>
+        <h1 class="page-title">Input Barang Keluar</h1>
         <div class="bento-card" style="max-width: 600px;">
           <form id="formKeluar">
             <div class="form-group"><label>Pilih Produk (Berdasarkan SKU)</label><select id="outProdukId" required></select></div>
@@ -272,7 +277,7 @@
       <!-- MASTER PRODUK -->
       <div id="page-masterProduk" class="page-view hidden">
         <div class="page-header-flex">
-          <h2 class="page-title">Master Produk</h2>
+          <h1 class="page-title">Master Produk</h1>
           <button type="button" class="btn-primary" onclick="bukaDetailProduk()"><i class="fa-solid fa-plus"></i> Tambah Produk</button>
         </div>
         <div class="bento-card">
@@ -287,32 +292,32 @@
 
       <!-- MASTER DYNAMIC -->
       <div id="page-masterMerk" class="page-view hidden">
-        <div class="page-header-flex"><h2 class="page-title">Master Merk</h2><button type="button" class="btn-primary" onclick="openModalMaster('merk')"><i class="fa-solid fa-plus"></i> Tambah Merk</button></div>
+        <div class="page-header-flex"><h1 class="page-title">Master Merk</h1><button type="button" class="btn-primary" onclick="openModalMaster('merk')"><i class="fa-solid fa-plus"></i> Tambah Merk</button></div>
         <div class="bento-card"><div class="table-responsive"><table class="data-table"><thead><tr><th>No</th><th>Nama Merk</th><th>Action</th></tr></thead><tbody id="tableMasterMerk"></tbody></table></div></div>
       </div>
       <div id="page-masterJenis" class="page-view hidden">
-        <div class="page-header-flex"><h2 class="page-title">Master Jenis</h2><button type="button" class="btn-primary" onclick="openModalMaster('jenis')"><i class="fa-solid fa-plus"></i> Tambah Jenis</button></div>
+        <div class="page-header-flex"><h1 class="page-title">Master Jenis</h1><button type="button" class="btn-primary" onclick="openModalMaster('jenis')"><i class="fa-solid fa-plus"></i> Tambah Jenis</button></div>
         <div class="bento-card"><div class="table-responsive"><table class="data-table"><thead><tr><th>No</th><th>Nama Jenis</th><th>Action</th></tr></thead><tbody id="tableMasterJenis"></tbody></table></div></div>
       </div>
       <div id="page-masterUkuran" class="page-view hidden">
-        <div class="page-header-flex"><h2 class="page-title">Master Ukuran</h2><button type="button" class="btn-primary" onclick="openModalMaster('ukuran')"><i class="fa-solid fa-plus"></i> Tambah Ukuran</button></div>
+        <div class="page-header-flex"><h1 class="page-title">Master Ukuran</h1><button type="button" class="btn-primary" onclick="openModalMaster('ukuran')"><i class="fa-solid fa-plus"></i> Tambah Ukuran</button></div>
         <div class="bento-card"><div class="table-responsive"><table class="data-table"><thead><tr><th>No</th><th>Nama Ukuran</th><th>Action</th></tr></thead><tbody id="tableMasterUkuran"></tbody></table></div></div>
       </div>
       <div id="page-masterLokasi" class="page-view hidden">
-        <div class="page-header-flex"><h2 class="page-title">Master Lokasi</h2><button type="button" class="btn-primary" onclick="openModalMaster('lokasi')"><i class="fa-solid fa-plus"></i> Tambah Lokasi</button></div>
+        <div class="page-header-flex"><h1 class="page-title">Master Lokasi</h1><button type="button" class="btn-primary" onclick="openModalMaster('lokasi')"><i class="fa-solid fa-plus"></i> Tambah Lokasi</button></div>
         <div class="bento-card"><div class="table-responsive"><table class="data-table"><thead><tr><th>No</th><th>Nama Lokasi</th><th>Action</th></tr></thead><tbody id="tableMasterLokasi"></tbody></table></div></div>
       </div>
 
       <!-- DATA STOK -->
       <div id="page-stok" class="page-view hidden">
-        <h2 class="page-title">Data Stok Real-time</h2>
+        <h1 class="page-title">Data Stok Real-time</h1>
         <div class="bento-card"><div class="table-responsive"><table class="data-table"><thead><tr><th>SKU</th><th>Nama</th><th>Lokasi</th><th>Stok Saat Ini</th></tr></thead><tbody id="tableStok"></tbody></table></div></div>
       </div>
 
       <!-- HISTORY -->
       <div id="page-history" class="page-view hidden">
         <div class="page-header-flex">
-          <h2 class="page-title">Semua History Transaksi</h2>
+          <h1 class="page-title">Semua History Transaksi</h1>
           <button type="button" class="btn-primary" onclick="exportHistoryToExcel()"><i class="fa-solid fa-file-excel"></i> Export ke Excel</button>
         </div>
         <div class="bento-card">
@@ -334,7 +339,8 @@
           <span id="footerBrandLogoText">Inventory</span>
         </div>
         <p>&copy; <span id="year"></span> <span id="footerCompanyName">Inventory Enterprise</span>. All rights reserved.</p>
-        <p>Designed by <a href="https://wa.me/62895627104050?text=Halo%20Divzz,%20saya%20tertarik%20dengan%20aplikasi%20Inventory%20System" target="_blank">Divzz</a></p>
+        <!-- Perbaikan Kontras: Warna link diganti -->
+        <p>Designed by <a href="https://wa.me/62895627104050?text=Halo%20Divzz,%20saya%20tertarik%20dengan%20aplikasi%20Inventory%20System" target="_blank" style="color: #60a5fa;">Divzz</a></p>
       </div>
       
       <div class="footer-right">
@@ -354,7 +360,7 @@
 <!-- MODAL PRODUK -->
 <div id="modalProduk" class="modal-overlay hidden" onclick="closeModalOutside(event, 'modalProduk')">
   <div class="modal-content" onclick="event.stopPropagation()">
-    <div class="modal-header"><h3 id="modalProdukTitle">Detail Produk Baru</h3><button type="button" class="close-btn" onclick="closeModal('modalProduk')">&times;</button></div>
+    <div class="modal-header"><h3 id="modalProdukTitle">Detail Produk Baru</h3><button type="button" class="close-btn" onclick="closeModal('modalProduk')" aria-label="Tutup">&times;</button></div>
     <form id="formProduk">
       <input type="hidden" id="prodId">
       <div class="modal-body">
@@ -389,7 +395,7 @@
 <!-- MODAL MASTER -->
 <div id="modalMaster" class="modal-overlay hidden" onclick="closeModalOutside(event, 'modalMaster')">
   <div class="modal-content" style="max-width: 400px;" onclick="event.stopPropagation()">
-    <div class="modal-header"><h3 id="modalMasterTitle">Tambah Data</h3><button type="button" class="close-btn" onclick="closeModal('modalMaster')">&times;</button></div>
+    <div class="modal-header"><h3 id="modalMasterTitle">Tambah Data</h3><button type="button" class="close-btn" onclick="closeModal('modalMaster')" aria-label="Tutup">&times;</button></div>
     <div class="modal-body"><div class="form-group"><label>Nama</label><input type="text" id="masterNama" required></div></div>
     <div class="modal-footer">
       <button type="button" class="btn-secondary" onclick="closeModal('modalMaster')">Batal</button>
@@ -398,15 +404,12 @@
   </div>
 </div>
 
-<!-- ANTI CRASH SCRIPT: Hamburger & Splash Screen -->
 <script>
-  // 1. Paksa hilangkan splash screen
   setTimeout(function() {
     var splash = document.getElementById('splashScreen');
     if(splash) { splash.style.opacity = '0'; splash.style.visibility = 'hidden'; }
   }, 1000);
 
-  // 2. Fungsi Hamburger
   function toggleMenu() {
     var sidebar = document.getElementById('sidebar');
     var overlay = document.getElementById('sidebarOverlay');
@@ -419,7 +422,6 @@
   }
 </script>
 
-<!-- TAMBAHAN ?v=999 UNTUK HAPUS CACHE -->
 <script type="module" src="js/app.js?v=999"></script>
 </body>
 </html>
