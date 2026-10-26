@@ -110,7 +110,6 @@ button { cursor: pointer; font-family: inherit; }
 .topbar { background: var(--bg-surface); padding: 16px 32px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 50; transition: background 0.3s; }
 .topbar-left { display: flex; align-items: center; gap: 20px; flex: 1; min-width: 0; }
 
-/* PERBAIKAN HAMBURGER: Pastikan posisinya di atas dan tidak tertutup */
 .hamburger { 
   display: flex; align-items: center; justify-content: center; 
   background: none; border: none; font-size: 20px; 
@@ -119,7 +118,6 @@ button { cursor: pointer; font-family: inherit; }
 }
 .hamburger:hover { color: var(--primary); transform: scale(1.1) rotate(90deg); }
 
-/* PERBAIKAN SEARCH BAR: Agar tidak menimpa tombol hamburger di layar kecil */
 .search-bar { 
   display: flex; align-items: center; background: var(--bg-main); 
   padding: 10px 16px; border-radius: var(--radius-sm); 
