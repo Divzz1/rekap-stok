@@ -26,7 +26,6 @@
   --radius-sm: 8px;
 }
 
-/* Dark Mode Variables */
 [data-theme="dark"] {
   --bg-main: #0f172a;
   --bg-surface: #1e293b;
@@ -109,12 +108,24 @@ button { cursor: pointer; font-family: inherit; }
 /* ===== MAIN CONTENT & TOPBAR ===== */
 .main-content { flex: 1; margin-left: 260px; display: flex; flex-direction: column; min-height: 100vh; transition: margin-left 0.3s ease, width 0.3s ease; width: calc(100% - 260px); }
 .topbar { background: var(--bg-surface); padding: 16px 32px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 50; transition: background 0.3s; }
-.topbar-left { display: flex; align-items: center; gap: 20px; flex: 1; }
+.topbar-left { display: flex; align-items: center; gap: 20px; flex: 1; min-width: 0; }
 
-.hamburger { display: flex; align-items: center; justify-content: center; background: none; border: none; font-size: 20px; color: var(--text-muted); cursor: pointer; transition: all 0.2s; }
+/* PERBAIKAN HAMBURGER: Pastikan posisinya di atas dan tidak tertutup */
+.hamburger { 
+  display: flex; align-items: center; justify-content: center; 
+  background: none; border: none; font-size: 20px; 
+  color: var(--text-muted); cursor: pointer; transition: all 0.2s; 
+  position: relative; z-index: 100; flex-shrink: 0; 
+}
 .hamburger:hover { color: var(--primary); transform: scale(1.1) rotate(90deg); }
 
-.search-bar { display: flex; align-items: center; background: var(--bg-main); padding: 10px 16px; border-radius: var(--radius-sm); width: 100%; max-width: 350px; border: 1px solid var(--border); transition: all 0.3s; }
+/* PERBAIKAN SEARCH BAR: Agar tidak menimpa tombol hamburger di layar kecil */
+.search-bar { 
+  display: flex; align-items: center; background: var(--bg-main); 
+  padding: 10px 16px; border-radius: var(--radius-sm); 
+  width: 100%; max-width: 350px; border: 1px solid var(--border); 
+  transition: all 0.3s; flex-shrink: 1; 
+}
 .search-bar:focus-within { background: var(--bg-surface); border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.1); transform: translateY(-2px); }
 .search-bar input { border: none; background: transparent; outline: none; margin-left: 10px; width: 100%; font-size: 14px; color: var(--text-main); }
 
