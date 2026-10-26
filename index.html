@@ -21,7 +21,7 @@
   <div class="spinner"></div>
 </div>
 
-<!-- GLOBAL LOADER (Saat pindah halaman / simpan) -->
+<!-- GLOBAL LOADER -->
 <div id="globalLoader" class="hidden">
   <div class="spinner"></div>
 </div>
@@ -79,14 +79,16 @@
         <div class="submenu">
           <a href="#" onclick="showPage('inputMasuk', this)">Barang Masuk (PO)</a>
           <a href="#" onclick="showPage('inputKeluar', this)">Barang Keluar</a>
-          <a href="#" onclick="showPage('stok', this)">Data Stok</a>
+          <!-- TAMBAHAN ID NAV-STOK -->
+          <a href="#" id="nav-stok" onclick="showPage('stok', this)">Data Stok</a>
         </div>
       </div>
 
       <div class="menu-group">
         <div class="menu-item" onclick="toggleSubmenu(this)"><i class="fa-solid fa-cubes"></i> Master Data <i class="fa-solid fa-chevron-down arrow"></i></div>
         <div class="submenu">
-          <a href="#" onclick="showPage('masterProduk', this)">Produk</a>
+          <!-- TAMBAHAN ID NAV-PRODUK -->
+          <a href="#" id="nav-produk" onclick="showPage('masterProduk', this)">Produk</a>
           <a href="#" onclick="showPage('masterMerk', this)">Merk</a>
           <a href="#" onclick="showPage('masterJenis', this)">Jenis</a>
           <a href="#" onclick="showPage('masterUkuran', this)">Ukuran</a>
@@ -148,8 +150,9 @@
         </div>
 
         <div class="bento-grid">
-          <!-- Featured Card -->
-          <div class="bento-card featured-card">
+          
+          <!-- UBAHAN: KARTU ASET JADI BISA DIKLIK KE DATA STOK -->
+          <div class="bento-card featured-card" style="cursor: pointer;" onclick="document.getElementById('nav-stok').click()" title="Lihat Data Stok">
             <div class="featured-content">
               <div class="icon-box-glass"><i class="fa-solid fa-wallet"></i></div>
               <p>Total Nilai Aset</p>
@@ -160,8 +163,8 @@
             </div>
           </div>
 
-          <!-- Stat Cards -->
-          <div class="bento-card stat-card">
+          <!-- UBAHAN: KARTU TOTAL SKU JADI BISA DIKLIK KE MASTER PRODUK -->
+          <div class="bento-card stat-card" style="cursor: pointer;" onclick="document.getElementById('nav-produk').click()" title="Lihat Master Produk">
             <div class="stat-icon blue"><i class="fa-solid fa-cube"></i></div>
             <div class="stat-details">
               <span>Total SKU</span>
@@ -169,7 +172,8 @@
             </div>
           </div>
 
-          <div class="bento-card stat-card">
+          <!-- UBAHAN: KARTU STOK MENIPIS JADI BISA DIKLIK KE DATA STOK -->
+          <div class="bento-card stat-card" style="cursor: pointer;" onclick="document.getElementById('nav-stok').click()" title="Lihat Stok Menipis">
             <div class="stat-icon red"><i class="fa-solid fa-triangle-exclamation"></i></div>
             <div class="stat-details">
               <span>Stok Menipis</span>
