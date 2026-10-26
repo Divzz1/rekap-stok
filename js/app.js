@@ -1,5 +1,8 @@
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 
+/* ============================================================
+   ⚠️ GANTI DENGAN KREDENSIAL SUPABASE ANDA
+   ============================================================ */
 const SUPABASE_URL = 'https://vggxtpyduiiaazoloylx.supabase.co/';
 const SUPABASE_ANON_KEY = 'sb_publishable_kQifdwQIic-ycFJBLPa8Og_TvOSw13Z';
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -67,6 +70,7 @@ window.showPage = (pageId, el) => {
   if (pageId === 'stok') loadStokPage();
   if (pageId === 'history') loadHistory();
   if (pageId === 'settings') loadSettingsData();
+  if (pageId === 'inputMasuk') loadDropdownProdukMasuk(); // <-- MEMANGGIL FUNGSI DROPDOWN
   if (pageId === 'inputKeluar') {
     loadDropdownProduk();
     document.getElementById('outTanggal').value = new Date().toISOString().split('T')[0];
@@ -353,7 +357,7 @@ async function loadDashboard() {
       options: { 
         responsive: true, 
         maintainAspectRatio: false, 
-        layout: { padding: { bottom: 10 } }, // Padding ekstra agar label bawah tidak terpotong
+        layout: { padding: { bottom: 10 } }, 
         plugins: { legend: { display: false } },
         scales: {
           y: {
@@ -393,20 +397,48 @@ async function loadDashboard() {
   `).join('') || '<tr><td colspan="4" align="center">Belum ada aktivitas</td></tr>';
 }
 
+// FUNGSI BARU: Memuat Dropdown Produk untuk Barang Masuk
+async function loadDropdownProdukMasuk() {
+  const select = document.getElementById('inProdukId');
+  if (!select) return;
+
+  // Ambil semua produk
+  const { data } = await supabase.from('products').select('id, sku, nama, stok').order('nama');
+  
+  if (!data || data.length === 0) {
+    select.innerHTML = '<option value="">Belum ada produk di Master Data</option>';
+    return;
+  }
+  
+  select.innerHTML = '<option value="">-- Pilih Produk --</option>' + 
+    data.map(p => `<option value="${p.id}">${p.sku} - ${p.nama} (Sisa: ${p.stok})</option>`).join('');
+}
+
+// FUNGSI YANG DIUBAH: Mengambil dari Dropdown, bukan ketikan manual
 window.tambahKeTabelSementara = async () => {
-  const sku = document.getElementById('inputSkuCepat').value;
+  const produkId = document.getElementById('inProdukId').value;
   const jml = parseInt(document.getElementById('inputJmlCepat').value);
   const harga = parseFloat(document.getElementById('inputHargaCepat').value);
 
-  if (!sku || !jml || !harga) return alert('Isi SKU, Jumlah, dan Harga dengan benar.');
+  if (!produkId || !jml || !harga) return alert('Pilih produk, isi Jumlah, dan Harga dengan benar.');
 
-  const { data: prod, error } = await supabase.from('products').select('*').eq('sku', sku).single();
-  if (error || !prod) return alert('SKU tidak ditemukan di Master Produk!');
+  // Ambil data produk terbaru dari database
+  const { data: prod, error } = await supabase.from('products').select('*').eq('id', produkId).single();
+  if (error || !prod) return alert('Produk tidak ditemukan di database!');
 
-  tempStokData.push({ ...prod, jumlahBeli: jml, hargaBeli: harga });
+  // Cek jika produk sudah ada di daftar antrean sementara, update saja jumlah/harganya
+  const existingIndex = tempStokData.findIndex(item => item.id === prod.id);
+  if (existingIndex !== -1) {
+    tempStokData[existingIndex].jumlahBeli = jml;
+    tempStokData[existingIndex].hargaBeli = harga;
+  } else {
+    tempStokData.push({ ...prod, jumlahBeli: jml, hargaBeli: harga });
+  }
+  
   renderTempStok();
 
-  document.getElementById('inputSkuCepat').value = '';
+  // Reset form input
+  document.getElementById('inProdukId').value = '';
   document.getElementById('inputJmlCepat').value = '';
   document.getElementById('inputHargaCepat').value = '';
 };
@@ -418,7 +450,7 @@ function renderTempStok() {
   }
   tbody.innerHTML = tempStokData.map((item, index) => `
     <tr>
-      <td>${item.sku}</td><td>${item.nama}</td><td>${item.lokasi || '-'}</td>
+      <td><b>${item.sku}</b></td><td>${item.nama}</td><td>${item.lokasi || '-'}</td>
       <td>${item.jumlahBeli}</td><td>Rp ${item.hargaBeli.toLocaleString('id-ID')}</td>
       <td><button class="btn-sm red" onclick="hapusTempStok(${index})"><i class="fa-solid fa-trash"></i></button></td>
     </tr>
