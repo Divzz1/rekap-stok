@@ -4,7 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Enterprise Inventory System</title>
-  <link rel="stylesheet" href="css/style.css">
+  <!-- TAMBAHAN ?v=999 UNTUK HAPUS CACHE -->
+  <link rel="stylesheet" href="css/style.css?v=999">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
@@ -22,8 +23,8 @@
 <!-- GLOBAL LOADER -->
 <div id="globalLoader" class="hidden"><div class="spinner"></div></div>
 
-<!-- AUTH SCREEN -->
-<div id="authScreen" class="auth-container hidden">
+<!-- AUTH SCREEN (TIDAK ADA CLASS HIDDEN LAGI AGAR MUNCUL DULUAN) -->
+<div id="authScreen" class="auth-container">
   <div class="auth-box">
     <h2 style="margin-bottom: 24px; font-weight: 700; font-size: 24px;">Inventory System</h2>
     <div id="authError" class="hidden" style="color: red; margin-bottom: 16px; font-size: 13px;"></div>
@@ -51,7 +52,6 @@
 <div id="appScreen" class="app-layout hidden">
   <div id="sidebarOverlay" class="sidebar-overlay" onclick="toggleMenu()"></div>
 
-  <!-- SIDEBAR -->
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-brand">
       <div class="brand-logo-placeholder" style="width: 36px; height: 36px; background: var(--border); border-radius: 10px; flex-shrink: 0;"></div>
@@ -93,11 +93,11 @@
     </div>
   </aside>
 
-  <!-- MAIN CONTENT -->
   <main class="main-content">
     <header class="topbar">
       <div class="topbar-left">
-        <button type="button" class="hamburger" onclick="toggleMenu()"><i class="fa-solid fa-bars"></i></button>
+        <!-- TOMBOL HAMBURGER Z-INDEX TINGGI -->
+        <button type="button" class="hamburger" onclick="toggleMenu()" style="z-index: 9999; position: relative;"><i class="fa-solid fa-bars"></i></button>
         <div class="search-bar">
           <i class="fa-solid fa-magnifying-glass text-muted"></i>
           <input type="text" id="globalSearch" placeholder="Cari SKU / Nama Produk..." onkeyup="filterTable()">
@@ -400,13 +400,13 @@
 
 <!-- ANTI CRASH SCRIPT: Hamburger & Splash Screen -->
 <script>
-  // 1. Paksa hilangkan splash screen setelah 1.5 detik (Anti Blank)
+  // 1. Paksa hilangkan splash screen
   setTimeout(function() {
     var splash = document.getElementById('splashScreen');
     if(splash) { splash.style.opacity = '0'; splash.style.visibility = 'hidden'; }
-  }, 1500);
+  }, 1000);
 
-  // 2. Fungsi Hamburger Murni HTML (Jalan walau JS luar mati)
+  // 2. Fungsi Hamburger
   function toggleMenu() {
     var sidebar = document.getElementById('sidebar');
     var overlay = document.getElementById('sidebarOverlay');
@@ -419,6 +419,7 @@
   }
 </script>
 
-<script type="module" src="js/app.js"></script>
+<!-- TAMBAHAN ?v=999 UNTUK HAPUS CACHE -->
+<script type="module" src="js/app.js?v=999"></script>
 </body>
 </html>
