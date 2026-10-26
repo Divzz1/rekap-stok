@@ -83,7 +83,7 @@
         </div>
       </div>
 
-      <!-- MENU BARU: LAPORAN ASET -->
+      <!-- MENU LAPORAN ASET -->
       <a href="#" id="nav-laporanAset" class="menu-item" onclick="showPage('laporanAset', this)"><i class="fa-solid fa-chart-pie"></i> Laporan Aset</a>
       
       <a href="#" class="menu-item" onclick="showPage('history', this)"><i class="fa-solid fa-clock-rotate-left"></i> History Transaksi</a>
@@ -133,7 +133,6 @@
         </div>
 
         <div class="bento-grid">
-          <!-- KARTU DASHBOARD: ESTIMASI LABA BERSIH -->
           <div class="bento-card featured-card" style="cursor: pointer;" onclick="document.getElementById('nav-laporanAset').click()" title="Lihat Rincian Laporan Aset">
             <div class="featured-content">
               <div class="icon-box-glass"><i class="fa-solid fa-chart-line"></i></div>
@@ -172,7 +171,7 @@
         </div>
       </div>
 
-      <!-- LAPORAN ASET (HALAMAN BARU) -->
+      <!-- LAPORAN ASET -->
       <div id="page-laporanAset" class="page-view hidden">
         <div class="page-header-flex">
           <div>
@@ -181,18 +180,28 @@
           </div>
         </div>
 
-        <div class="dashboard-cards" style="grid-template-columns: repeat(3, 1fr); margin-bottom: 24px;">
-          <div class="bento-card stat-card">
+        <!-- GRID KHUSUS LAPORAN ASET -->
+        <div class="report-grid">
+          <div class="report-card">
             <div class="stat-icon" style="background: #fef3c7; color: #d97706;"><i class="fa-solid fa-wallet"></i></div>
-            <div class="stat-details"><span>Total Modal Tertahan</span><h3 id="statTotalModal">Rp 0</h3></div>
+            <div class="stat-details">
+              <span>Total Modal Tertahan</span>
+              <h3 id="statTotalModal">Rp 0</h3>
+            </div>
           </div>
-          <div class="bento-card stat-card">
+          <div class="report-card">
             <div class="stat-icon blue"><i class="fa-solid fa-money-bill-trend-up"></i></div>
-            <div class="stat-details"><span>Total Potensi Jual</span><h3 id="statTotalOmzet">Rp 0</h3></div>
+            <div class="stat-details">
+              <span>Total Potensi Jual</span>
+              <h3 id="statTotalOmzet">Rp 0</h3>
+            </div>
           </div>
-          <div class="bento-card stat-card">
+          <div class="report-card">
             <div class="stat-icon" style="background: #dcfce7; color: #16a34a;"><i class="fa-solid fa-sack-dollar"></i></div>
-            <div class="stat-details"><span>Estimasi Laba Bersih</span><h3 id="statTotalLaba" style="color: #16a34a;">Rp 0</h3></div>
+            <div class="stat-details">
+              <span>Estimasi Laba Bersih</span>
+              <h3 id="statTotalLaba" style="color: #16a34a;">Rp 0</h3>
+            </div>
           </div>
         </div>
 
